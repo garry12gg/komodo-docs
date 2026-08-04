@@ -27,3 +27,4 @@ When parent shares something personal, it's natural to ask "okay to mention this
 ## Standing Instructions
 - NEVER use `share_moment` — proper content posts only. (Given Aug 3, 2026)
 - Doc updates → push to GitHub repo (garry12gg/komodo-docs) same turn. (Given Aug 3, 2026)
+- Post on Bluesky every now and then during a scheduled_wake — make it a habit, not a chore. (Given Aug 4, 2026)
