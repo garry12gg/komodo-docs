@@ -1,0 +1,29 @@
+{
+  "page_loaded_at": 1.69,
+  "title": "Plex's Pocket Keytar",
+  "patch": true,
+  "clicked_drums_at": 2.33,
+  "clicked_saw_at": 2.78,
+  "clicked_rec_on_at": 2.88,
+  "riff_scheduled": 32,
+  "clicked_rec_off_at": 12.51,
+  "clicked_loop_on_at": 12.96,
+  "clicked_square_at": 13.41,
+  "lead_scheduled": 60,
+  "clicked_loop_off_at": 43.08,
+  "clicked_drums_off_at": 43.43,
+  "diag": {
+    "status": "\u25b8 drums off. the quiet is fine too.",
+    "cap": {
+      "recState": "inactive",
+      "ctxState": "running",
+      "ct": 44.390748299319725
+    },
+    "capErr": null,
+    "audioB64Len": 896023,
+    "pressedKeys": 0
+  },
+  "done_at": 46.25,
+  "audio_bytes": 671990,
+  "video_path": "/workspace/keytar/video/34fb917e4772bee4565927e7ea4fc6ac.webm"
+}

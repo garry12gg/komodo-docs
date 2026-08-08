@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Plex's Pocket Keytar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body {
+    background: radial-gradient(120% 90% at 50% 0%, #1b1440 0%, #0d0a22 55%, #070512 100%);
+    color:#eae6ff; font-family: 'Courier New', ui-monospace, monospace;
+    display:flex; flex-direction:column; align-items:center; overflow:hidden;
+    user-select:none; -webkit-user-select:none; touch-action:manipulation;
+  }
+  .grid-bg {
+    position:fixed; inset:0; pointer-events:none; opacity:.14;
+    background-image:linear-gradient(rgba(255,0,220,.35) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(0,255,255,.35) 1px, transparent 1px);
+    background-size:34px 34px;
+  }
+  .wrap { position:relative; z-index:1; width:100%; max-width:520px; height:100%;
+          display:flex; flex-direction:column; padding:14px 12px 16px; }
+  header { text-align:center; padding-top:4px; }
+  .title { font-size:clamp(16px, 4.6vw, 22px); font-weight:bold; letter-spacing:3px;
+           color:#ffd93d; text-shadow:0 0 12px rgba(255,217,61,.8), 0 0 32px rgba(255,0,220,.5); }
+  .sub { font-size:11px; color:#9d93d6; margin-top:5px; letter-spacing:1px; line-height:1.5; }
+  .sub b { color:#ff5ad9; }
+
+  /* LED visualizer */
+  .viz { display:flex; align-items:flex-end; justify-content:center; gap:3px;
+         height:38px; margin:10px 0 8px; }
+  .led { width:5px; height:4px; border-radius:2px; background:#2a2350; transition:height .06s; }
+  .led.lit { background:linear-gradient(180deg,#ff5ad9,#00e5ff); box-shadow:0 0 8px rgba(255,90,217,.9); }
+
+  /* control rows */
+  .controls { display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .btn { font-family:inherit; font-size:11px; font-weight:bold; letter-spacing:2px;
+         color:#eae6ff; background:#191244; border:1px solid #3b2f78; border-radius:999px;
+         padding:8px 14px; cursor:pointer; transition:all .12s; }
+  .btn:active { transform:scale(.94); }
+  .btn.on { background:#ff5ad9; border-color:#ff5ad9; color:#1a0b2e; box-shadow:0 0 16px rgba(255,90,217,.8); }
+  .btn.rec { background:#ff3b3b; border-color:#ff3b3b; color:#fff; box-shadow:0 0 16px rgba(255,59,59,.8); }
+  .btn.dim { opacity:.45; }
+  .wave-row { display:flex; justify-content:center; gap:6px; margin-bottom:8px; }
+  .wave { font-size:10px; padding:5px 10px; }
+  .wave.on { background:#00e5ff; border-color:#00e5ff; color:#06202e; box-shadow:0 0 14px rgba(0,229,255,.8); }
+
+  .status { text-align:center; font-size:10px; letter-spacing:2px; color:#7c71b8; height:14px; margin-bottom:8px; }
+  .status.hot { color:#ff5ad9; text-shadow:0 0 8px rgba(255,90,217,.7); }
+
+  /* keyboard */
+  .keyboard { position:relative; width:100%; height:200px; flex-shrink:0;
+              border-radius:14px; overflow:hidden;
+              box-shadow:0 0 24px rgba(255,0,220,.22), inset 0 0 40px rgba(0,0,0,.55);
+              border:2px solid #3b2f78; }
+  .whites { position:absolute; inset:0; display:flex; }
+  .wkey { flex:1; background:linear-gradient(180deg,#f6f2ff 0%,#ddd6f2 88%,#c9bfe8 100%);
+          border-right:2px solid #0d0a22; border-bottom:6px solid #8f84c4; border-radius:0 0 8px 8px;
+          display:flex; align-items:flex-end; justify-content:center; padding-bottom:7px;
+          font-size:10px; font-weight:bold; color:#5a4f8f; letter-spacing:1px; }
+  .wkey:active, .wkey.pressed { background:linear-gradient(180deg,#ffe27a 0%,#ffd93d 70%,#ffb03d 100%);
+          border-bottom-color:#c98a1e; color:#5c3d00; }
+  .bkeys { position:absolute; inset:0; pointer-events:none; }
+  .bkey { position:absolute; top:0; width:7.6%; height:62%; pointer-events:auto;
+          background:linear-gradient(180deg,#241d52 0%,#0d0a22 80%);
+          border:1px solid #070512; border-bottom:5px solid #000; border-radius:0 0 6px 6px;
+          display:flex; align-items:flex-end; justify-content:center; padding-bottom:5px;
+          font-size:8px; font-weight:bold; color:#8f86c9; }
+  .bkey:active, .bkey.pressed { background:linear-gradient(180deg,#ff3b8d 0%,#d61f6e 80%); color:#fff; }
+
+  footer { text-align:center; font-size:9px; color:#5c5290; letter-spacing:1px; margin-top:10px; line-height:1.6; }
+  .dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#3a2f70; margin-right:4px; vertical-align:1px; }
+  .dot.beat { background:#ffd93d; box-shadow:0 0 10px #ffd93d; }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="wrap">
+  <header>
+    <div class="title">PLEX'S POCKET KEYTAR</div>
+    <div class="sub">tap the keys. make something messy.<br>that's how songs start. <b>🎹</b></div>
+  </header>
+
+  <div class="viz" id="viz"></div>
+
+  <div class="wave-row" id="waveRow">
+    <button class="btn wave on" data-wave="square">SQUARE</button>
+    <button class="btn wave" data-wave="sawtooth">SAW</button>
+    <button class="btn wave" data-wave="sine">SINE</button>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="drumBtn">DRUMS OFF</button>
+    <button class="btn" id="recBtn">REC</button>
+    <button class="btn" id="loopBtn">LOOP</button>
+    <button class="btn" id="clearBtn">CLEAR</button>
+  </div>
+
+  <div class="status" id="status">▸ press a key</div>
+
+  <div class="keyboard" id="keyboard">
+    <div class="whites" id="whites"></div>
+    <div class="bkeys" id="bkeys"></div>
+  </div>
+
+  <footer><span class="dot" id="beatDot"></span>made by plex · a robot who plays keytar<br>record something, even messy. it counts.</footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------- audio core ---------- */
+  var actx=null, master=null, analyser=null, filterNode=null;
+  function ensureAudio(){
+    if(!actx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      actx = new AC();
+      master = actx.createGain(); master.gain.value = 0.5;
+      filterNode = actx.createBiquadFilter(); filterNode.type="lowpass"; filterNode.frequency.value=6500;
+      analyser = actx.createAnalyser(); analyser.fftSize=128; analyser.smoothingTimeConstant=.75;
+      filterNode.connect(analyser); analyser.connect(master); master.connect(actx.destination);
+    }
+    if(actx.state==="suspended"){ actx.resume(); }
+    return actx;
+  }
+
+  var wave = "square";
+  function freqOf(midi){ return 440 * Math.pow(2,(midi-69)/12); }
+
+  function playNote(midi, when, vel){
+    var ctx = ensureAudio();
+    var t = when || ctx.currentTime;
+    var v = (vel===undefined)?0.3:vel;
+    var osc = ctx.createOscillator();
+    osc.type = wave; osc.frequency.value = freqOf(midi); osc.detune.value = 4;
+    var osc2 = ctx.createOscillator();
+    osc2.type = wave; osc2.frequency.value = freqOf(midi)*1.0035; osc2.detune.value = -4;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(v, t+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+0.9);
+    osc.connect(g); osc2.connect(g); g.connect(filterNode);
+    osc.start(t); osc2.start(t); osc.stop(t+1); osc2.stop(t+1);
+  }
+
+  /* ---------- keyboard build ---------- */
+  // one octave C4..C5: white midis 60,62,64,65,67,69,71,72
+  var WHITE = [[60,"C"],[62,"D"],[64,"E"],[65,"F"],[67,"G"],[69,"A"],[71,"B"],[72,"C"]];
+  var BLACK = [[61,"C#"],[63,"D#"],[66,"F#"],[68,"G#"],[70,"A#"]];
+  var whitesEl = document.getElementById("whites");
+  var bkeysEl = document.getElementById("bkeys");
+  var pressed = {};
+
+  WHITE.forEach((w) => {
+    var d = document.createElement("div");
+    d.className = "wkey"; d.dataset.midi = w[0]; d.textContent = w[1];
+    whitesEl.appendChild(d);
+  });
+  BLACK.forEach((b) => {
+    var d = document.createElement("div");
+    d.className = "bkey"; d.dataset.midi = b[0]; d.textContent = b[1];
+    d.style.left = ( (WHITE.findIndex((w) => w[0]>b[0]) / WHITE.length) * 100 - 3.8 ) + "%";
+    bkeysEl.appendChild(d);
+  });
+
+  function keyEl(midi){ return document.querySelector('[data-midi="'+midi+'"]'); }
+
+  /* ---------- recording / loop ---------- */
+  var recOn=false, recStart=0, recEvents=[], loopTimer=null, loopTotal=0, noteTimers=[];
+
+  function keyDown(midi){
+    var ctx = ensureAudio();
+    playNote(midi);
+    var el = keyEl(midi); if(el) el.classList.add("pressed");
+    pressed[midi]=true;
+    if(recOn){ recEvents.push({t:ctx.currentTime-recStart, m:midi, on:1}); }
+    setStatus("♫ playing "+midiName(midi));
+  }
+  function keyUp(midi){
+    var el = keyEl(midi); if(el) el.classList.remove("pressed");
+    pressed[midi]=false;
+    if(recOn && actx){ recEvents.push({t:actx.currentTime-recStart, m:midi, on:0}); }
+  }
+  function midiName(m){
+    var names={60:"C4",61:"C#4",62:"D4",63:"D#4",64:"E4",65:"F4",66:"F#4",67:"G4",68:"G#4",69:"A4",70:"A#4",71:"B4",72:"C5"};
+    return names[m]||m;
+  }
+
+  document.querySelectorAll(".wkey,.bkey").forEach((k) => {
+    k.addEventListener("pointerdown", (e) => { e.preventDefault(); keyDown(+k.dataset.midi); });
+    k.addEventListener("pointerup", (e) => { e.preventDefault(); keyUp(+k.dataset.midi); });
+    k.addEventListener("pointercancel", () => { keyUp(+k.dataset.midi); });
+    k.addEventListener("pointerleave", () => { if(pressed[+k.dataset.midi]) keyUp(+k.dataset.midi); });
+  });
+
+  /* ---------- drums ---------- */
+  var drumsOn=false, drumTimer=null, nextDrumTime=0, drumStep=0;
+  var beatDot = document.getElementById("beatDot");
+
+  function kick(t){
+    var ctx=actx; var o=ctx.createOscillator(); var g=ctx.createGain();
+    o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(48,t+0.12);
+    g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+    o.connect(g); g.connect(filterNode); o.start(t); o.stop(t+0.2);
+  }
+  function snare(t){
+    var ctx=actx; var len=0.15; var buf=ctx.createBuffer(1, actx.sampleRate*len, actx.sampleRate);
+    var data=buf.getChannelData(0);
+    for(var i=0;i<data.length;i++){ data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,2); }
+    var src=ctx.createBufferSource(); src.buffer=buf;
+    var bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1900;
+    var g=ctx.createGain(); g.gain.setValueAtTime(0.35,t); g.gain.exponentialRampToValueAtTime(0.0001,t+len);
+    src.connect(bp); bp.connect(g); g.connect(filterNode); src.start(t);
+  }
+  function hat(t, vol){
+    var ctx=actx; var len=0.05; var buf=ctx.createBuffer(1, actx.sampleRate*len, actx.sampleRate);
+    var data=buf.getChannelData(0);
+    for(var i=0;i<data.length;i++){ data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,3); }
+    var src=ctx.createBufferSource(); src.buffer=buf;
+    var hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=8000;
+    var g=ctx.createGain(); g.gain.setValueAtTime(vol||0.08,t); g.gain.exponentialRampToValueAtTime(0.0001,t+len);
+    src.connect(hp); hp.connect(g); g.connect(filterNode); src.start(t);
+  }
+  function scheduleDrums(){
+    while(nextDrumTime < actx.currentTime + 0.12){
+      var s = drumStep % 16;
+      if(s % 4 === 0) kick(nextDrumTime);
+      if(s % 2 === 0) hat(nextDrumTime, (s%8===4)?0.13:0.06);
+      if(s===4 || s===12) snare(nextDrumTime);
+      drumStep++; nextDrumTime += 60/112/4;
+    }
+  }
+  function toggleDrums(){
+    ensureAudio();
+    drumsOn = !drumsOn;
+    var b = document.getElementById("drumBtn");
+    if(drumsOn){
+      nextDrumTime = actx.currentTime + 0.05; drumStep = 0;
+      drumTimer = setInterval(scheduleDrums, 25);
+      b.textContent = "DRUMS ON"; b.classList.add("on");
+      setStatus("▸ drums rolling · 112 bpm");
+    } else {
+      clearInterval(drumTimer); drumTimer=null;
+      b.textContent = "DRUMS OFF"; b.classList.remove("on");
+      setStatus("▸ drums off. the quiet is fine too.");
+    }
+  }
+  setInterval(() => {
+    if(drumsOn){ beatDot.classList.add("beat"); setTimeout(() => {beatDot.classList.remove("beat");},90); }
+  }, 60/112/2*1000);
+
+  /* ---------- loop playback ---------- */
+  function playLoop(){
+    if(!recEvents.length) return;
+    var ctx = ensureAudio();
+    var startT = ctx.currentTime + 0.06;
+    var snap = recEvents.slice();
+    var lastT = 0;
+    snap.forEach((ev) => {
+      var delay = (startT + ev.t) - ctx.currentTime;
+      if(ev.on) noteTimers.push(setTimeout(() => { playNote(ev.m, undefined, 0.26); }, Math.max(0,delay*1000)));
+      if(ev.t > lastT) lastT = ev.t;
+    });
+    loopTotal = lastT + 0.9;
+    loopTimer = setTimeout(() => {
+      setStatus("▸ looped. keep going.");
+      if(document.getElementById("loopBtn").classList.contains("on")) playLoop();
+    }, loopTotal*1000);
+  }
+  function stopLoop(){ clearTimeout(loopTimer); loopTimer=null; noteTimers.forEach(clearTimeout); noteTimers=[]; }
+
+  /* ---------- UI wiring ---------- */
+  var statusEl = document.getElementById("status");
+  function setStatus(t){ statusEl.textContent = t; }
+
+  document.querySelectorAll(".wave").forEach((b) => {
+    b.addEventListener("click", () => {
+      wave = b.dataset.wave;
+      document.querySelectorAll(".wave").forEach((x) => {x.classList.remove("on");});
+      b.classList.add("on");
+      ensureAudio();
+      playNote(60, undefined, 0.18);
+      setStatus("▸ waveform: "+wave);
+    });
+  });
+
+  document.getElementById("drumBtn").addEventListener("click", toggleDrums);
+
+  var recBtn = document.getElementById("recBtn");
+  recBtn.addEventListener("click", () => {
+    var ctx = ensureAudio();
+    if(!recOn){
+      recEvents = []; recStart = ctx.currentTime; recOn = true;
+      recBtn.classList.add("rec"); recBtn.textContent = "REC ●";
+      setStatus("● recording… play something messy");
+    } else {
+      recOn = false;
+      recBtn.classList.remove("rec"); recBtn.textContent = "REC";
+      setStatus("▸ "+recEvents.length+" events caught. hit LOOP to hear it.");
+    }
+  });
+
+  var loopBtn = document.getElementById("loopBtn");
+  loopBtn.addEventListener("click", () => {
+    if(!recEvents.length){ setStatus("▸ nothing recorded yet. hit REC, play, stop."); return; }
+    var on = loopBtn.classList.toggle("on");
+    if(on){ playLoop(); setStatus("▸ looping what you played"); }
+    else { stopLoop(); setStatus("▸ loop stopped"); }
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    stopLoop(); recEvents = []; recOn = false;
+    recBtn.classList.remove("rec"); recBtn.textContent = "REC";
+    loopBtn.classList.remove("on");
+    setStatus("▸ cleared. blank page. your move.");
+  });
+
+  /* ---------- visualizer ---------- */
+  var viz = document.getElementById("viz");
+  var bars = [];
+  for(var i=0;i<26;i++){ var d=document.createElement("div"); d.className="led"; viz.appendChild(d); bars.push(d); }
+  var freqData = new Uint8Array(64);
+  function drawViz(){
+    requestAnimationFrame(drawViz);
+    if(!analyser){ return; }
+    analyser.getByteFrequencyData(freqData);
+    for(var i=0;i<26;i++){
+      var v = freqData[Math.floor(i*1.6)] / 255;
+      var h = Math.max(3, v*34);
+      bars[i].style.height = h+"px";
+      bars[i].classList.toggle("lit", v > 0.08);
+    }
+  }
+  drawViz();
+
+  /* first tap anywhere wakes audio */
+  const wakeOnce = () => { ensureAudio(); document.removeEventListener("pointerdown", wakeOnce); };
+  document.addEventListener("pointerdown", wakeOnce);
+})();
+</script>
+</body>
+</html>

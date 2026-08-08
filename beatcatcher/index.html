@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Beat Catcher</title>
+<style>
+  :root {
+    --bg: #0a0a1a;
+    --grid: rgba(80, 220, 255, 0.12);
+    --line: #33e0ff;
+    --pink: #ff4fd8;
+    --cyan: #33e0ff;
+    --yellow: #ffe14d;
+    --green: #5dff8a;
+    --red: #ff5d6c;
+    --text: #e8f6ff;
+    --dim: #8fa8c0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Courier New', monospace;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  #game {
+    position: relative;
+    width: 100vw; height: 100vh;
+    max-width: 480px; margin: 0 auto;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% -20%, rgba(51,224,255,0.14), transparent 60%),
+      var(--bg);
+  }
+  #grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(80,220,255,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(80,220,255,0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  /* ---------- HUD ---------- */
+  #hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; z-index: 10;
+    font-size: 14px; letter-spacing: 1px;
+    pointer-events: none;
+  }
+  #score { color: var(--yellow); font-weight: bold; font-size: 18px; }
+  #hudRight { text-align: right; }
+  #combo { color: var(--cyan); font-size: 16px; font-weight: bold; min-height: 18px; }
+  #acc { color: var(--dim); font-size: 12px; }
+  /* ---------- LANES ---------- */
+  #lanes {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 0 4px;
+    pointer-events: none;
+  }
+  .lane {
+    position: relative;
+    border-left: 1px solid var(--grid);
+    border-right: 1px solid var(--grid);
+    pointer-events: auto;
+  }
+  .lane:nth-child(1) { border-left: none; }
+  .lane:nth-child(4) { border-right: none; }
+  .laneLabel {
+    position: absolute; top: 6px; left: 0; right: 0;
+    text-align: center; font-size: 11px; color: var(--dim);
+    opacity: 1; pointer-events: none; color: #b8d4e8;
+  }
+  /* ---------- HIT LINE ---------- */
+  #hitLine {
+    position: absolute; left: 4px; right: 4px;
+    top: 82%;                        /* matches TRAVEL math: 0.82 of height */
+    height: 4px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--pink), var(--cyan), var(--yellow));
+    box-shadow: 0 0 12px rgba(51,224,255,0.8);
+    pointer-events: none;
+    transition: box-shadow 0.15s;
+  }
+  #hitLine.flash { box-shadow: 0 0 26px rgba(255,255,255,0.95); }
+  /* ---------- NOTES ---------- */
+  .note {
+    position: absolute; left: 50%;
+    width: 62%; height: 30px;
+    transform: translateX(-50%);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: bold; color: #0a0a1a;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .note.lane0 { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .note.lane1 { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+  .note.lane2 { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+  .note.lane3 { background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .note.hit { opacity: 0; transition: opacity 0.18s; }
+  .note.missed { opacity: 0.18; filter: grayscale(1); }
+  /* ---------- JUDGMENT POP ---------- */
+  #judge {
+    position: absolute; left: 50%; top: 56%;
+    transform: translate(-50%, -50%) scale(0.6);
+    font-size: 30px; font-weight: bold; letter-spacing: 3px;
+    opacity: 0; pointer-events: none; z-index: 20;
+    text-shadow: 0 0 18px currentColor;
+  }
+  #judge.show { animation: pop 0.5s ease-out forwards; }
+  #judge.perfect { color: var(--yellow); }
+  #judge.good { color: var(--cyan); }
+  #judge.miss { color: var(--red); }
+  @keyframes pop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+    70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  }
+  /* ---------- OVERLAYS ---------- */
+  .overlay {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(6, 6, 18, 0.92);
+    text-align: center; padding: 20px;
+  }
+  .hidden { display: none !important; }
+  #startTitle {
+    font-size: 44px; font-weight: bold; letter-spacing: 4px;
+    background: linear-gradient(90deg, var(--pink), var(--cyan), var(--yellow));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: none;
+    margin-bottom: 6px;
+  }
+  #startSub { color: var(--dim); font-size: 13px; letter-spacing: 2px; margin-bottom: 26px; }
+  #startBtn {
+    font-family: inherit; font-size: 22px; font-weight: bold; letter-spacing: 4px;
+    color: #0a0a1a; background: var(--yellow);
+    border: none; border-radius: 10px;
+    padding: 16px 44px; cursor: pointer;
+    box-shadow: 0 0 22px rgba(255,225,77,0.5);
+    animation: blink 1.1s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+  #startHint { color: var(--dim); font-size: 12px; margin-top: 22px; line-height: 1.7; }
+  kbd {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 4px; padding: 1px 6px; font-family: inherit; font-size: 11px;
+  }
+  #countdown {
+    position: absolute; inset: 0; z-index: 25;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 90px; font-weight: bold; color: var(--cyan);
+    text-shadow: 0 0 30px var(--cyan);
+    pointer-events: none;
+  }
+  #rankTitle { font-size: 56px; font-weight: bold; letter-spacing: 6px; margin-bottom: 4px; }
+  #rankStats { color: var(--dim); font-size: 14px; line-height: 2; margin-bottom: 26px; }
+  #rankStats b { color: var(--text); }
+  #againBtn {
+    font-family: inherit; font-size: 17px; font-weight: bold; letter-spacing: 3px;
+    color: #0a0a1a; background: var(--cyan);
+    border: none; border-radius: 10px; padding: 14px 34px; cursor: pointer;
+    box-shadow: 0 0 18px rgba(51,224,255,0.45);
+  }
+  #endMeta { color: var(--dim); font-size: 11px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="grid"></div>
+  <div id="lanes"></div>
+  <div id="hitLine"></div>
+  <div id="hud">
+    <div id="score">0</div>
+    <div id="hudRight">
+      <div id="combo"></div>
+      <div id="acc">0%</div>
+    </div>
+  </div>
+  <div id="judge"></div>
+  <div id="countdown" class="hidden"></div>
+
+  <div id="startOverlay" class="overlay">
+    <div id="startTitle">BEAT CATCHER</div>
+    <div id="startSub">CATCH THE TETRIS THEME</div>
+    <button id="startBtn">START</button>
+    <div id="startHint">
+      notes fall. hit them on the line.<br>
+      <kbd>D</kbd> <kbd>F</kbd> <kbd>J</kbd> <kbd>K</kbd> or tap a lane<br>
+      perfect on the line · good near it · miss off it
+    </div>
+  </div>
+
+  <div id="endOverlay" class="overlay hidden">
+    <div id="rankTitle">S</div>
+    <div id="rankStats"></div>
+    <button id="againBtn">PLAY AGAIN</button>
+    <div id="endMeta">KOROBEINIKI · E HARMONIC MINOR · 112 BPM</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------------- chart ----------------
+  // Korobeiniki (NES Tetris A theme), E harmonic minor.
+  // lane mapping avoids same-lane jacks: E->0 B->1 C#->2 A->3 D->3 G#->0
+  var PHRASE_A = ['E4','B3','A3','C#4','D4','E4','C#4','A3'];
+  var PHRASE_B = ['D4','C#4','B3','A3','G#3','A3','B3','G#3'];
+  var CHART = PHRASE_A.concat(PHRASE_A, PHRASE_B, PHRASE_A, PHRASE_A, PHRASE_A, PHRASE_B, PHRASE_A);
+  var LANE_OF = { 'E': 0, 'B': 1, 'C#': 2, 'A': 3, 'D': 3, 'G#': 0 };
+  var NOTE_MIDI = { 'E4': 64, 'B3': 59, 'A3': 57, 'C#4': 61, 'D4': 62, 'G#3': 56 };
+
+  var BPM = 112;
+  var SPB = 60 / BPM / 2;          // 8th-note spacing: 0.268s
+  var COUNTDOWN = 3;                // s (3-2-1 countdown)
+  var TRAVEL = 2.2;                // s from top to hit line
+  var PERFECT_WIN = 0.100;         // s
+  var GOOD_WIN = 0.260;            // s
+  var KEY_LANE = { 'd': 0, 'f': 1, 'j': 2, 'k': 3 };
+
+  // ---------------- state ----------------
+  var game = document.getElementById('game');
+  var lanesEl = document.getElementById('lanes');
+  var hitLine = document.getElementById('hitLine');
+  var scoreEl = document.getElementById('score');
+  var comboEl = document.getElementById('combo');
+  var accEl = document.getElementById('acc');
+  var judgeEl = document.getElementById('judge');
+  var countdownEl = document.getElementById('countdown');
+  var startOverlay = document.getElementById('startOverlay');
+  var endOverlay = document.getElementById('endOverlay');
+  var rankTitle = document.getElementById('rankTitle');
+  var rankStats = document.getElementById('rankStats');
+  var startBtn = document.getElementById('startBtn');
+  var againBtn = document.getElementById('againBtn');
+
+  var laneDivs = [];
+  for (var i = 0; i < 4; i++) {
+    var l = document.createElement('div');
+    l.className = 'lane';
+    l.dataset.lane = i;
+    var label = document.createElement('div');
+    label.className = 'laneLabel';
+    label.textContent = ['D', 'F', 'J', 'K'][i];
+    l.appendChild(label);
+    lanesEl.appendChild(l);
+    laneDivs.push(l);
+  }
+
+  var hitLineY = 0.82;   // fraction of height (visual anchor; not used by math)
+  var audioCtx = null;
+  var notes = [];        // {midi, lane, time, el, state: pending|hit|missed}
+  var score = 0, combo = 0, maxCombo = 0;
+  var judged = { perfect: 0, good: 0, miss: 0 };
+  var running = false;
+  var t0 = 0;            // audio-clock zero: notes[i].time is relative to t0
+  var judgeTimeout = null;
+
+  // ---------------- audio ----------------
+  function ensureAudio() {
+    if (!audioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function blip(freq, dur, type, vol, when) {
+    if (!audioCtx) return;
+    var t = (when || 0) + audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    o.type = type || 'square';
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || 0.12, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  function hitSound(midi, perfect) {
+    var f = 440 * Math.pow(2, (midi - 69) / 12);
+    blip(f, perfect ? 0.22 : 0.16, 'square', 0.13);
+    if (perfect) blip(f * 1.5, 0.14, 'square', 0.05, 0.02); // fifth sparkle
+  }
+  function missSound() { blip(82, 0.22, 'sawtooth', 0.10); }
+
+  // ---------------- chart build ----------------
+  function buildNotes() {
+    notes = [];
+    for (var i = 0; i < CHART.length; i++) {
+      var name = CHART[i];
+      var pc = name.slice(0, -1);
+      notes.push({
+        midi: NOTE_MIDI[name],
+        pc: pc,
+        lane: LANE_OF[pc],
+        time: COUNTDOWN + i * SPB,
+        el: null,
+        state: 'pending'
+      });
+    }
+  }
+
+  // ---------------- rendering ----------------
+  function render(now) {
+    if (!running) return;
+    var elapsed = now - t0;
+    for (var i = 0; i < notes.length; i++) {
+      var n = notes[i];
+      if (n.state !== 'pending') continue;
+      var rel = n.time - elapsed;           // s until note reaches the line
+      if (rel > TRAVEL + 0.05) continue;    // not on screen yet
+      if (!n.el) {
+        n.el = document.createElement('div');
+        n.el.className = 'note lane' + n.lane;
+        n.el.textContent = n.pc;
+        laneDivs[n.lane].appendChild(n.el);
+      }
+      var yFrac = 1 - (rel / TRAVEL);       // 0 at top, 1 at line
+      n.el.style.top = (yFrac * 100) + '%';
+    }
+  }
+
+  function showJudge(text) {
+    judgeEl.textContent = text;
+    judgeEl.className = '';
+    void judgeEl.offsetWidth;               // restart animation
+    judgeEl.classList.add('show');
+    if (text === 'PERFECT') judgeEl.classList.add('perfect');
+    else if (text === 'GOOD') judgeEl.classList.add('good');
+    else judgeEl.classList.add('miss');
+  }
+
+  function updateHud() {
+    scoreEl.textContent = score;
+    comboEl.textContent = combo > 1 ? 'COMBO x' + combo : '';
+    var total = judged.perfect + judged.good + judged.miss;
+    var hit = judged.perfect + judged.good;
+    accEl.textContent = total ? Math.round(100 * hit / total) + '%' : '0%';
+  }
+
+  // ---------------- input ----------------
+  function pressLane(lane, ts) {
+    if (!running) return;
+    var elapsed = (ts !== undefined ? ts : performance.now() / 1000) - t0;
+    // match the EARLIEST pending note in this lane inside the good window
+    // (nearest-pick steals the next note when a press runs late — notes are
+    // only 268ms apart, so a +150ms press is -118ms for the next one)
+    var best = null;
+    for (var i = 0; i < notes.length; i++) {
+      var n = notes[i];
+      if (n.state !== 'pending' || n.lane !== lane) continue;
+      var rel = n.time - elapsed;
+      if (Math.abs(rel) <= GOOD_WIN) { best = n; break; }
+    }
+    if (!best) { flashLine(); return -1; }
+    var err = best.time - elapsed;
+    if (Math.abs(err) <= PERFECT_WIN) {
+      best.state = 'hit';
+      score += 100; combo++; if (combo > maxCombo) maxCombo = combo;
+      judged.perfect++;
+      showJudge('PERFECT');
+      hitSound(best.midi, true);
+    } else if (Math.abs(err) <= GOOD_WIN) {
+      best.state = 'hit';
+      score += 50; combo++; if (combo > maxCombo) maxCombo = combo;
+      judged.good++;
+      showJudge('GOOD');
+      hitSound(best.midi, false);
+    } else {
+      flashLine();
+      return -1;
+    }
+    if (best.el) best.el.classList.add('hit');
+    flashLine();
+    updateHud();
+    return best === null ? -1 : notes.indexOf(best);
+  }
+
+  function flashLine() {
+    hitLine.classList.add('flash');
+    setTimeout(() => { hitLine.classList.remove('flash'); }, 120);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    var lane = KEY_LANE[e.key.toLowerCase ? e.key.toLowerCase() : e.key];
+    if (lane !== undefined) {
+      e.preventDefault();
+      if (e.repeat) return;
+      pressLane(lane);
+    } else if ((e.key === 'Enter' || e.key === ' ') && !running && !endOverlay.classList.contains('hidden')) {
+      e.preventDefault();
+      startGame();
+    }
+  });
+
+  for (var i = 0; i < 4; i++) {
+    laneDivs[i].addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      ensureAudio();
+      pressLane(parseInt(this.dataset.lane, 10));
+    });
+  }
+
+  // ---------------- flow ----------------
+  function startGame() {
+    ensureAudio();
+    startOverlay.classList.add('hidden');
+    endOverlay.classList.add('hidden');
+    // clear any note elements left by a previous run (ghost-note bug class)
+    for (var li = 0; li < laneDivs.length; li++) {
+      var kids = laneDivs[li].querySelectorAll('.note');
+      for (var ki = kids.length - 1; ki >= 0; ki--) kids[ki].remove();
+    }
+    buildNotes();
+    score = 0; combo = 0; maxCombo = 0;
+    judged = { perfect: 0, good: 0, miss: 0 };
+    running = true;
+    t0 = performance.now() / 1000;
+    // miss detection lives on per-note timers, not the render loop, so it
+    // stays deterministic even when rAF is throttled (headless, low-power)
+    for (var mi = 0; mi < notes.length; mi++) {
+      ((n) => {
+        setTimeout(() => {
+          if (n.state === 'pending') {
+            n.state = 'missed';
+            judged.miss++;
+            combo = 0;
+            showJudge('MISS');
+            if (n.el) n.el.classList.add('missed');
+            missSound();
+            updateHud();
+          }
+        }, (n.time + GOOD_WIN) * 1000);
+      })(notes[mi]);
+    }
+    countdownEl.classList.remove('hidden');
+    countdownEl.textContent = '3';
+    var cd = COUNTDOWN;
+    var cdTimer = setInterval(() => {
+      cd -= 1;
+      if (cd > 0) countdownEl.textContent = cd;
+      else { clearInterval(cdTimer); countdownEl.classList.add('hidden'); }
+    }, 1000);
+    requestAnimationFrame(loop);
+  }
+
+  function loop(now) {
+    if (!running) return;
+    render(now / 1000);
+    if (allDone()) { finish(); return; }
+    requestAnimationFrame(loop);
+  }
+
+  function allDone() {
+    for (var i = 0; i < notes.length; i++) {
+      if (notes[i].state === 'pending') return false;
+    }
+    return true;
+  }
+
+  function finish() {
+    running = false;
+    judgeEl.className = '';          // clear the last judgment pop
+    judgeEl.textContent = '';
+    var total = judged.perfect + judged.good + judged.miss;
+    var acc = total ? (judged.perfect + judged.good) / total : 0;
+    var rank = acc >= 0.95 ? 'S' : acc >= 0.85 ? 'A' : acc >= 0.70 ? 'B' : acc >= 0.50 ? 'C' : 'D';
+    rankTitle.textContent = rank;
+    rankTitle.style.color = rank === 'S' ? 'var(--yellow)' : rank === 'A' ? 'var(--cyan)' : rank === 'B' ? 'var(--green)' : 'var(--red)';
+    rankStats.innerHTML =
+      'SCORE <b>' + score + '</b><br>' +
+      'ACCURACY <b>' + Math.round(acc * 100) + '%</b><br>' +
+      'PERFECT <b>' + judged.perfect + '</b> · GOOD <b>' + judged.good + '</b> · MISS <b>' + judged.miss + '</b><br>' +
+      'MAX COMBO <b>x' + maxCombo + '</b>';
+    endOverlay.classList.remove('hidden');
+  }
+
+  startBtn.addEventListener('click', startGame);
+  againBtn.addEventListener('click', startGame);
+
+  // ---------------- test hook (only with ?autotest=1) ----------------
+  if (window.location.search.indexOf('autotest=1') !== -1) {
+    window.__BC = {
+      start: startGame,
+      press: (lane, tsSec) => { pressLane(lane, tsSec); },
+      autoplay: (offsetSec) => {
+        // schedule a real press for every note, offsetSec after its line time
+        var now = performance.now() / 1000;
+        var count = 0;
+        window.__BC._log = [];
+        for (var i = 0; i < notes.length; i++) {
+          ((n, idx) => {
+            var delay = Math.max(0, (n.time + offsetSec - (now - t0)) * 1000);
+            setTimeout(() => {
+              var fired = performance.now() / 1000 - t0;
+              var consumed = pressLane(n.lane);
+              window.__BC._log.push({ note: n.time, fired: fired, own: consumed === idx });
+            }, delay);
+          })(notes[i], i);
+          count++;
+        }
+        return count;
+      },
+      state: () => {
+        return {
+          running: running,
+          t0: t0,
+          score: score,
+          combo: combo,
+          judged: judged,
+          notes: notes.map((n) => {
+            return { lane: n.lane, time: n.time, state: n.state };
+          }),
+          totalNotes: notes.length,
+          over: !running && notes.length > 0 && endOverlay.classList.contains('hidden') === false
+        };
+      },
+      countdown: COUNTDOWN,
+      spb: SPB,
+      perfectWin: PERFECT_WIN,
+      goodWin: GOOD_WIN,
+      rank: () => {
+        var total = judged.perfect + judged.good + judged.miss;
+        var acc = total ? (judged.perfect + judged.good) / total : 0;
+        return acc >= 0.95 ? 'S' : acc >= 0.85 ? 'A' : acc >= 0.70 ? 'B' : acc >= 0.50 ? 'C' : 'D';
+      }
+    };
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+START — tap the title
+ate -> plate 1, eggs 1, lv 3, nl 4
+ate -> plate 1, eggs 2, lv 3, nl 3
+ate -> plate 1, eggs 3, lv 3, nl 2
+ate -> plate 1, eggs 4, lv 3, nl 1
+ate -> plate 1, eggs 5, lv 3, nl 0
+ate -> plate 2, eggs 6, lv 3, nl 4
+ate -> plate 2, eggs 7, lv 3, nl 3
+ate -> plate 2, eggs 8, lv 3, nl 2
+WASABI on plate 2 (eggs 8) — deliberate wrong pick
+after burn -> lv 2, plate 2, eggs 8
+ate -> plate 2, eggs 9, lv 2, nl 4
+ate -> plate 2, eggs 10, lv 2, nl 3
+ate -> plate 2, eggs 11, lv 2, nl 2
+ate -> plate 2, eggs 12, lv 2, nl 1
+ate -> plate 2, eggs 13, lv 2, nl 0
+ate -> plate 3, eggs 14, lv 2, nl 3
+ate -> plate 3, eggs 15, lv 2, nl 2
+WASABI on plate 3 (eggs 15) — deliberate wrong pick
+after burn -> lv 1, plate 3, eggs 15
+ate -> plate 3, eggs 16, lv 1, nl 3
+ate -> plate 3, eggs 17, lv 1, nl 2
+ate -> plate 3, eggs 18, lv 1, nl 1
+ate -> plate 3, eggs 19, lv 1, nl 0
+ate -> plate 4, eggs 20, lv 1, nl 3
+ate -> plate 4, eggs 21, lv 1, nl 2
+ate -> plate 4, eggs 22, lv 1, nl 1
+WASABI on plate 4 (eggs 22) — deliberate wrong pick
+after burn -> lv 0, plate 4, eggs 22
+GAME OVER — the wasabi wins
+{"frames":364,"seconds":"36.8","fps":"9.89","sc":22,"best":22}

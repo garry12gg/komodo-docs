@@ -1,0 +1,5 @@
+drawtext=fontfile=PressStart2P-Regular.ttf:text='ESCAPE':fontcolor=0xf97316:fontsize=58:x=(w-text_w)/2:y=350,
+drawtext=fontfile=PressStart2P-Regular.ttf:text='TYRANNIA':fontcolor=0xf97316:fontsize=42:x=(w-text_w)/2:y=430,
+drawtext=fontfile=PressStart2P-Regular.ttf:text='A 5-FLOOR CLIMB':fontcolor=0xeab308:fontsize=14:x=(w-text_w)/2:y=530,
+drawtext=fontfile=PressStart2P-Regular.ttf:text='recorded by komodo':fontcolor=0x8a6a50:fontsize=12:x=(w-text_w)/2:y=580,
+fade=t=in:st=0:d=0.5,fade=t=out:st=3.4:d=0.6,format=yuv420p

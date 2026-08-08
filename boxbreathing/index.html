@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Box Breathing</title>
+<style>
+  :root {
+    --bg1: #241812;
+    --bg2: #120b08;
+    --ink: #f2e3d3;
+    --ink-dim: #c9a37f;
+    --ember: #ff7a3c;
+    --ember-soft: #ffb057;
+    --gold: #e8c47c;
+    --box: #8a5a34;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(120% 90% at 50% 30%, var(--bg1) 0%, var(--bg2) 75%);
+    color: var(--ink);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  .wrap {
+    height: 100dvh;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(18px + env(safe-area-inset-top)) 20px calc(16px + env(safe-area-inset-bottom));
+  }
+  .head { text-align: center; }
+  .head h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .head .sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--ink-dim);
+    opacity: 0.8;
+    letter-spacing: 0.06em;
+  }
+
+  /* pace selector */
+  .pace {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    justify-content: center;
+  }
+  .pace button {
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid #6b4a2e;
+    background: rgba(255, 122, 60, 0.06);
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .pace button.active {
+    background: rgba(255, 122, 60, 0.22);
+    border-color: var(--ember);
+    color: var(--ember-soft);
+  }
+  .pace button:disabled { opacity: 0.4; }
+
+  /* the box */
+  .stage {
+    position: relative;
+    width: min(72vw, 300px);
+    aspect-ratio: 1 / 1;
+    flex-shrink: 0;
+  }
+  .stage svg { width: 100%; height: 100%; display: block; }
+  .boxpath { fill: none; stroke: var(--box); stroke-width: 2.5; stroke-linecap: round; opacity: 0.45; }
+  .active-side { fill: none; stroke: url(#gradActive); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(255, 122, 60, 0.55)); }
+  .dot {
+    filter: drop-shadow(0 0 8px rgba(255, 176, 87, 0.9));
+  }
+  .corner-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    fill: var(--ink-dim);
+    text-anchor: middle;
+    opacity: 0.85;
+    text-transform: uppercase;
+  }
+  .corner-label.side-r { text-anchor: end; }
+  .corner-label.side-l { text-anchor: start; }
+  .corner-label.hot { fill: var(--ember-soft); opacity: 1; }
+
+  /* center readout */
+  .readout {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .phase {
+    font-size: clamp(26px, 7vw, 34px);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ember-soft);
+    transition: opacity 0.4s ease, color 0.4s ease;
+    text-shadow: 0 0 24px rgba(255, 122, 60, 0.35);
+  }
+  .phase.exhale { color: #ff9d6a; }
+  .phase.hold   { color: var(--gold); }
+  .count {
+    margin-top: 6px;
+    font-size: clamp(40px, 12vw, 56px);
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    opacity: 0.92;
+  }
+  .hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ink-dim);
+    opacity: 0.75;
+    letter-spacing: 0.05em;
+  }
+
+  /* controls */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .main-row { display: flex; align-items: center; gap: 14px; }
+  .big {
+    font: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1c0f07;
+    background: linear-gradient(180deg, var(--ember-soft), var(--ember));
+    border: none;
+    border-radius: 999px;
+    padding: 16px 44px;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(255, 122, 60, 0.35), inset 0 1px 0 rgba(255,255,255,0.35);
+    transition: transform 0.12s ease, box-shadow 0.2s ease;
+  }
+  .big:active { transform: scale(0.96); }
+  .big.paused { background: linear-gradient(180deg, #d98a4a, #b85f28); }
+  .round {
+    font: inherit;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid #6b4a2e;
+    background: rgba(255, 122, 60, 0.08);
+    color: var(--ink-dim);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .round.active { background: rgba(255, 122, 60, 0.25); color: var(--ember-soft); border-color: var(--ember); }
+  .stats {
+    display: flex;
+    gap: 26px;
+    font-size: 13px;
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stats b { color: var(--ink); font-weight: 600; }
+
+  @media (max-height: 620px) {
+    .head h1 { font-size: 17px; }
+    .stage { width: min(58vw, 220px); }
+    .big { padding: 13px 36px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Box Breathing</h1>
+    <div class="sub">the 4&middot;4&middot;4&middot;4 &mdash; in, hold, out, hold</div>
+    <div class="pace" id="pace">
+      <button data-pace="3">3s</button>
+      <button data-pace="4" class="active">4s</button>
+      <button data-pace="5">5s</button>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <svg viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <linearGradient id="gradActive" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ffb057"/>
+          <stop offset="100%" stop-color="#ff6b35"/>
+        </linearGradient>
+        <radialGradient id="dotGlow">
+          <stop offset="0%" stop-color="#ffe3b8"/>
+          <stop offset="45%" stop-color="#ffb057"/>
+          <stop offset="100%" stop-color="#ffb057" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect class="boxpath" x="18" y="18" width="164" height="164" rx="14"/>
+      <path class="active-side" id="activeSide" d=""/>
+      <circle class="dot" id="dot" r="7" fill="#ffc27a"/>
+      <circle id="dotHalo" r="16" fill="url(#dotGlow)" opacity="0.5"/>
+      <text class="corner-label" id="labIn"  x="100" y="12">Inhale</text>
+      <text class="corner-label side-r" id="labHoldR" x="197" y="104">Hold</text>
+      <text class="corner-label" id="labOut" x="100" y="194">Exhale</text>
+      <text class="corner-label side-l" id="labHoldL" x="3" y="104">Hold</text>
+    </svg>
+    <div class="readout">
+      <div class="phase" id="phase">Inhale</div>
+      <div class="count" id="count">4</div>
+      <div class="hint" id="hint">press start, breathe with the dot</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="main-row">
+      <button class="round" id="mute" title="sound on/off" aria-label="toggle sound">&#128266;</button>
+      <button class="big" id="start">Start</button>
+      <button class="round" id="reset" title="reset" aria-label="reset session">&#8635;</button>
+    </div>
+    <div class="stats">
+      <span>rounds <b id="rounds">0</b></span>
+      <span>time <b id="time">0:00</b></span>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------- state ---------- */
+  var PACES = { 3: 3000, 4: 4000, 5: 5000 };
+  var pace = 4000;
+  var PHASES = ["Inhale", "Hold", "Exhale", "Hold"];
+  var running = false;
+  var phaseIdx = 0;        // 0 Inhale, 1 Hold, 2 Exhale, 3 Hold
+  var phaseStart = 0;      // ms timestamp
+  var sessionStart = 0;
+  var rounds = 0;
+  var elapsedMs = 0;
+  var pausedAt = 0;
+
+  /* ---------- dom ---------- */
+  var $ = (id) => { return document.getElementById(id); };
+  var phaseEl = $("phase"), countEl = $("count"), hintEl = $("hint");
+  var startBtn = $("start"), muteBtn = $("mute"), resetBtn = $("reset");
+  var roundsEl = $("rounds"), timeEl = $("time");
+  var dot = $("dot"), halo = $("dotHalo"), activeSide = $("activeSide");
+  var labIn = $("labIn"), labHoldR = $("labHoldR"), labOut = $("labOut"), labHoldL = $("labHoldL");
+  var stage = $("stage");
+  var labels = [labIn, labHoldR, labOut, labHoldL];
+
+  /* ---------- geometry ---------- */
+  var S = 18, L = 164; // square: x S..S+L, y S..S+L
+  var corners = [
+    { x: S,     y: S },      // top-left (start of Inhale)
+    { x: S + L, y: S },      // top-right (start of Hold 1)
+    { x: S + L, y: S + L },  // bottom-right (start of Exhale)
+    { x: S,     y: S + L }   // bottom-left (start of Hold 2)
+  ];
+  var sides = [
+    [0, 1], // top
+    [1, 2], // right
+    [2, 3], // bottom
+    [3, 0]  // left
+  ];
+  const sidePath = (i) => {
+    var a = corners[sides[i][0]], b = corners[sides[i][1]];
+    return "M" + a.x + " " + a.y + " L" + b.x + " " + b.y;
+  }
+  const pointOnSide = (i, t) => {
+    var a = corners[sides[i][0]], b = corners[sides[i][1]];
+    return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+  }
+
+  /* ---------- audio ---------- */
+  var actx = null, master = null, breathGain = null, muted = false;
+  const ensureAudio = () => {
+    if (actx) { if (actx.state === "suspended") actx.resume(); return; }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    actx = new AC();
+    master = actx.createGain();
+    master.gain.value = muted ? 0 : 0.8;
+    master.connect(actx.destination);
+
+    // warm pad: two detuned oscillators through a lowpass
+    breathGain = actx.createGain();
+    breathGain.gain.value = 0.0001;
+    var lp = actx.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 900; lp.Q.value = 0.6;
+    breathGain.connect(lp); lp.connect(master);
+    [220, 221.5].forEach((f) => {
+      var o = actx.createOscillator();
+      o.type = "sine"; o.frequency.value = f;
+      o.connect(breathGain); o.start();
+    });
+  }
+  const chime = (which) => {
+    if (!actx || muted) return;
+    var now = actx.currentTime;
+    var freqs = [523.25, 440, 392, 440]; // C5, A4, G4, A4
+    var o = actx.createOscillator();
+    o.type = "sine";
+    o.frequency.value = freqs[which];
+    var g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.09, now + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+    o.connect(g); g.connect(master);
+    o.start(now); o.stop(now + 1.5);
+  }
+  const setBreath = (level) => {
+    if (!breathGain) return;
+    breathGain.gain.setTargetAtTime(level, actx.currentTime, 0.9);
+  }
+
+  /* ---------- phase machine ---------- */
+  const applyPhase = () => {
+    var name = PHASES[phaseIdx];
+    phaseEl.textContent = name;
+    phaseEl.className = "phase" + (name === "Exhale" ? " exhale" : name === "Hold" ? " hold" : "");
+    labels.forEach((l, i) => { l.classList.toggle("hot", i === phaseIdx); });
+    activeSide.setAttribute("d", sidePath(phaseIdx));
+
+    // breath feel: the box swells on inhale, settles on exhale
+    var scale = name === "Inhale" ? 1.035 : name === "Exhale" ? 0.985 : 1;
+    stage.style.transition = "transform " + pace / 1000 + "s ease-in-out";
+    stage.style.transform = "scale(" + scale + ")";
+
+    // pad level per phase
+    var lvl = name === "Inhale" ? 0.14 : name === "Hold" ? 0.09 : name === "Exhale" ? 0.05 : 0.03;
+    setBreath(lvl);
+  }
+  const tick = (now) => {
+    if (!running) return;
+    var d = now - phaseStart;
+    var dur = pace;
+    if (d >= dur) {
+      d = d - dur;
+      phaseStart = now - d;
+      phaseIdx = (phaseIdx + 1) % 4;
+      if (phaseIdx === 0) rounds++;
+      applyPhase();
+      chime(phaseIdx);
+    }
+    // dot position along the current side
+    var t = Math.min(d / dur, 1);
+    var p = pointOnSide(phaseIdx, t);
+    dot.setAttribute("cx", p.x);
+    dot.setAttribute("cy", p.y);
+    halo.setAttribute("cx", p.x);
+    halo.setAttribute("cy", p.y);
+    // countdown
+    var remain = Math.max(0, Math.ceil((dur - d) / 1000));
+    countEl.textContent = remain;
+    // session time
+    elapsedMs = now - sessionStart;
+    var secs = Math.floor(elapsedMs / 1000);
+    timeEl.textContent = Math.floor(secs / 60) + ":" + ("0" + (secs % 60)).slice(-2);
+    roundsEl.textContent = rounds;
+    requestAnimationFrame(tick);
+  }
+
+  /* ---------- controls ---------- */
+  const start = () => {
+    ensureAudio();
+    if (running) { pause(); return; }
+    running = true;
+    if (sessionStart === 0) {
+      // fresh session
+      sessionStart = performance.now();
+      phaseStart = performance.now();
+      phaseIdx = 0; rounds = 0;
+      applyPhase();
+      chime(0);
+    } else {
+      // resume: shift both clocks past the paused gap, so the phase
+      // continues where it froze and pause time never counts
+      var gap = performance.now() - pausedAt;
+      phaseStart += gap;
+      sessionStart += gap;
+    }
+    startBtn.textContent = "Pause";
+    startBtn.classList.add("paused");
+    hintEl.textContent = "follow the dot around the box";
+    requestAnimationFrame(tick);
+  }
+  const pause = () => {
+    running = false;
+    pausedAt = performance.now();
+    startBtn.textContent = "Start";
+    startBtn.classList.remove("paused");
+    hintEl.textContent = "press start, breathe with the dot";
+  }
+  const reset = () => {
+    running = false;
+    pausedAt = 0;
+    startBtn.textContent = "Start";
+    startBtn.classList.remove("paused");
+    rounds = 0; elapsedMs = 0; sessionStart = 0;
+    roundsEl.textContent = "0"; timeEl.textContent = "0:00";
+    phaseIdx = 0; countEl.textContent = pace / 1000;
+    phaseEl.textContent = "Inhale";
+    phaseEl.className = "phase";
+    labels.forEach((l) => { l.classList.remove("hot"); });
+    stage.style.transform = "scale(1)";
+    activeSide.setAttribute("d", sidePath(0));
+    dot.setAttribute("cx", S); dot.setAttribute("cy", S);
+    halo.setAttribute("cx", S); halo.setAttribute("cy", S);
+    hintEl.textContent = "press start, breathe with the dot";
+    setBreath(0.0001);
+  }
+
+  startBtn.addEventListener("click", start);
+  resetBtn.addEventListener("click", reset);
+  muteBtn.addEventListener("click", () => {
+    muted = !muted;
+    muteBtn.innerHTML = muted ? "&#128263;" : "&#128266;";
+    if (master) master.gain.setTargetAtTime(muted ? 0 : 0.8, actx.currentTime, 0.05);
+  });
+
+  document.querySelectorAll("#pace button").forEach((b) => {
+    b.addEventListener("click", () => {
+      if (running) return;
+      document.querySelectorAll("#pace button").forEach((x) => { x.classList.remove("active"); });
+      b.classList.add("active");
+      pace = PACES[b.dataset.pace];
+      countEl.textContent = pace / 1000;
+    });
+  });
+
+  /* initial paint */
+  activeSide.setAttribute("d", sidePath(0));
+  dot.setAttribute("cx", S); dot.setAttribute("cy", S);
+  halo.setAttribute("cx", S); halo.setAttribute("cy", S);
+  countEl.textContent = "4";
+})();
+</script>
+</body>
+</html>

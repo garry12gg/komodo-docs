@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Tyrannia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0a06;
+            --panel: #1c1108;
+            --panel2: #2a1a0a;
+            --border: rgba(200, 100, 20, 0.25);
+            --accent: #f97316;
+            --accent2: #eab308;
+            --blue: #3b82f6;
+            --red: #ef4444;
+            --green: #22c55e;
+            --text: #f5e6d0;
+            --muted: #8a6a50;
+            --safe: env(safe-area-inset-bottom);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; overflow-x: hidden; }
+        .font-pixel { font-family: 'Press Start 2P', monospace; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
+        .panel-dark { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; }
+        .bar-h { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 10px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; border: none; text-align: center; }
+        .btn:active { transform: scale(0.96); }
+        .btn-attack { background: linear-gradient(135deg, #dc2626, #991b1b); color: white; box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
+        .btn-defend { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
+        .btn-fire { background: linear-gradient(135deg, #f97316, #c2410c); color: white; box-shadow: 0 4px 12px rgba(249,115,22,0.3); }
+        .btn-item { background: linear-gradient(135deg, #22c55e, #15803d); color: white; box-shadow: 0 4px 12px rgba(34,197,94,0.3); }
+        .btn-run { background: rgba(255,255,255,0.08); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-choice { background: rgba(255,255,255,0.06); border: 1px solid rgba(200,120,20,0.3); color: var(--text); width: 100%; margin-bottom: 8px; text-align: left; }
+        .btn-choice:hover { background: rgba(200,120,20,0.15); border-color: rgba(200,120,20,0.5); }
+        .scene { position: relative; height: 220px; border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+        .scene-bg { width: 100%; height: 100%; object-fit: cover; }
+        .scene-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(15,10,6,0.9) 100%); }
+        .scene-title { position: absolute; bottom: 8px; left: 10px; font-size: 0.65rem; color: var(--accent2); letter-spacing: 0.1em; text-transform: uppercase; }
+        .enemy-sprite { position: absolute; font-size: 3.5rem; transition: all 0.5s ease; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+        .player-sprite { position: absolute; font-size: 3rem; bottom: 10px; right: 10px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+        .damage-float { position: absolute; font-weight: 800; font-size: 1.3rem; color: var(--red); animation: float-up 1s ease-out forwards; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .heal-float { color: var(--green); }
+        .xp-float { color: var(--accent2); font-size: 1rem; }
+        @keyframes float-up { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-50px) scale(1.2); opacity: 0; } }
+        .shake { animation: shake 0.4s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        .flash-red { animation: flash-red 0.3s ease; }
+        @keyframes flash-red { 0%,100%{filter:none} 50%{filter:brightness(0.3) sepia(1) hue-rotate(-30deg) saturate(5)} }
+        .fade-in { animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .hidden { display: none !important; }
+        .typewriter { overflow: hidden; border-right: 2px solid var(--accent); animation: blink-caret 0.8s step-end infinite; }
+        @keyframes blink-caret { 0%,100%{border-color:var(--accent)} 50%{border-color:transparent} }
+        .equip-tag { display: inline-block; background: rgba(234,179,8,0.15); color: var(--accent2); border: 1px solid rgba(234,179,8,0.3); border-radius: 4px; padding: 1px 6px; font-size: 0.6rem; font-weight: 700; }
+        .hp-bar-fill { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .enemy-hp-fill { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .np-tag { background: rgba(249,115,22,0.15); color: var(--accent); border: 1px solid rgba(249,115,22,0.3); border-radius: 4px; padding: 1px 6px; font-size: 0.65rem; font-weight: 700; }
+        .gold-text { color: var(--accent2); text-shadow: 0 0 10px rgba(234,179,8,0.4); }
+        .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .particle { position: absolute; border-radius: 50%; background: var(--accent); opacity: 0.3; animation: drift 6s ease-in-out infinite; }
+        @keyframes drift { 0%,100%{transform:translate(0,0)} 50%{transform:translate(20px,-20px)} }
+        .stat-icon { font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="max-w-md mx-auto px-3 py-3 pb-4 relative z-10" style="padding-bottom: calc(16px + var(--safe))">
+
+    <!-- HUD -->
+    <div id="hud" class="panel p-3 mb-3 fade-in">
+        <div class="flex justify-between items-center mb-2">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🔥</span>
+                <div>
+                    <div class="text-xs text-slate-400">HP</div>
+                    <div class="bar-h w-24"><div class="bar-fill hp-bar-fill" id="hp-bar" style="width:100%"></div></div>
+                </div>
+                <div class="font-pixel text-[9px] text-slate-400"><span id="hp-text">50</span>/50</div>
+            </div>
+            <div class="text-right">
+                <div class="np-tag">💰 <span id="np-display">0</span> NP</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Floor <span id="floor-display">1</span></div>
+            </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <div class="equip-tag">⚔️ Claws Lv.1</div>
+            <div class="equip-tag">🔥 Fire Breath</div>
+            <div class="equip-tag">💊 Potion ×<span id="pot-count">3</span></div>
+            <button class="equip-tag" id="btn-save" style="cursor:pointer;background:none;border:none;color:inherit;">💾 Save</button>
+            <button class="equip-tag" id="btn-load" style="cursor:pointer;background:none;border:none;color:inherit;">📂 Load</button>
+        </div>
+    </div>
+
+    <!-- Battle Screen -->
+    <div id="battle-screen" class="hidden">
+        <div class="scene mb-3">
+            <img class="scene-bg" id="scene-img" src="https://cdn.talkie-ai.com/claw/383625282932867/img/227aa061.png" alt="">
+            <div class="scene-overlay"></div>
+            <div class="scene-title" id="scene-name">Tyrannian Plateau</div>
+            <div class="enemy-sprite" id="enemy-sprite">🦎</div>
+            <div class="player-sprite">🔥</div>
+        </div>
+
+        <!-- Enemy info -->
+        <div class="panel-dark p-3 mb-3" id="enemy-info">
+            <div class="flex justify-between items-center mb-1">
+                <div class="font-bold text-sm" id="enemy-name">Wild Pteri</div>
+                <div class="font-pixel text-[9px] text-slate-400">Lv.<span id="enemy-lv">3</span></div>
+            </div>
+            <div class="bar-h mb-1"><div class="bar-fill enemy-hp-fill" id="enemy-hp-bar" style="width:100%"></div></div>
+            <div class="font-pixel text-[9px] text-slate-400 text-right"><span id="enemy-hp-text">20</span>/<span id="enemy-hp-max">20</span></div>
+            <div class="text-xs text-slate-500 mt-1 italic" id="enemy-quote">"Scree!"</div>
+        </div>
+
+        <!-- Battle log -->
+        <div class="panel-dark p-3 mb-3" id="battle-log" style="min-height:80px; max-height:120px; overflow-y:auto">
+            <div class="text-xs text-slate-500 mb-1 font-bold">BATTLE LOG</div>
+            <div id="log-entries" class="space-y-1"></div>
+        </div>
+
+        <!-- Battle actions -->
+        <div id="battle-actions" class="grid grid-cols-2 gap-2">
+            <button class="btn btn-attack" id="btn-attack">⚔️ Attack</button>
+            <button class="btn btn-fire" id="btn-fire">🔥 Fire Breath</button>
+            <button class="btn btn-defend" id="btn-defend">🛡️ Defend</button>
+            <button class="btn btn-item" id="btn-potion">💊 Potion ×<span id="pot-btn">3</span></button>
+            <button class="btn btn-run col-span-2" id="btn-run">🏃 Run Away</button>
+        </div>
+        <div id="battle-continue" class="hidden">
+            <button class="btn btn-choice w-full py-3 text-center" id="btn-continue">Continue →</button>
+        </div>
+    </div>
+
+    <!-- Exploration -->
+    <div id="explore-screen">
+        <div class="scene mb-3">
+            <img class="scene-bg" src="https://cdn.talkie-ai.com/claw/383625282932867/img/227aa061.png" alt="">
+            <div class="scene-overlay"></div>
+            <div class="scene-title">Tyrannian Plateau</div>
+            <div class="player-sprite">🔥</div>
+        </div>
+
+        <div class="panel p-3 mb-3" id="explore-narrative">
+            <div class="text-sm leading-relaxed" id="narrative-text"></div>
+        </div>
+
+        <div class="space-y-2" id="choices"></div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameover-screen" class="hidden text-center py-8">
+        <div class="text-5xl mb-4">💀</div>
+        <div class="font-pixel text-sm mb-2 text-red-400">GAME OVER</div>
+        <div class="text-sm text-slate-400 mb-4">You made it to floor <span id="go-floor">1</span></div>
+        <div class="np-tag inline-block mb-6 text-base">💰 <span id="go-np">0</span> NP earned</div>
+        <div>
+            <button class="btn btn-fire w-full mb-2" id="btn-retry">Try Again</button>
+        </div>
+    </div>
+
+    <!-- Victory -->
+    <div id="victory-screen" class="hidden text-center py-8">
+        <div class="text-5xl mb-4">🏆</div>
+        <div class="font-pixel text-sm mb-2 gold-text">ESCAPED TYRANNIA!</div>
+        <div class="text-sm text-slate-400 mb-2">You conquered all 5 floors</div>
+        <div class="np-tag inline-block mb-6 text-base">💰 <span id="vic-np">0</span> NP earned</div>
+        <div class="text-xs text-slate-500 mb-4">HP: <span id="vic-hp">50</span>/50</div>
+        <div>
+            <button class="btn btn-fire w-full mb-2" id="btn-replay">Play Again</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function(){
+    // Particles
+    const pc = document.getElementById('particles');
+    for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.width = p.style.height = (Math.random() * 3 + 1) + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.top = Math.random() * 100 + '%';
+        p.style.animationDelay = Math.random() * 6 + 's';
+        p.style.background = Math.random() > 0.5 ? 'var(--accent)' : 'var(--accent2)';
+        pc.appendChild(p);
+    }
+
+    const ENEMIES = [
+        { name:'Wild Pteri', emoji:'🐦', hp:18, atk:4, xp:8, np:15, quote:'"Scree!"' },
+        { name:'Anjonu', emoji:'🐟', hp:22, atk:5, xp:10, np:18, quote:'"Blub..."' },
+        { name:'Bullfrog', emoji:'🐸', hp:28, atk:6, xp:12, np:22, quote:'"Ribbit."' },
+        { name:'Moehog', emoji:'🐗', hp:35, atk:8, xp:15, np:28, quote:'"Oink."' },
+        { name:'Skeith', emoji:'🐉', hp:45, atk:10, xp:20, np:35, quote:'"Grrr."' },
+        { name:'HAG', emoji:'👵', hp:55, atk:12, xp:25, np:45, quote:'"My rocks..."', boss:true },
+    ];
+
+    const ENCOUNTERS = [
+        {
+            text: "The volcanic plateau stretches before you. Heat rises from cracks in the orange rock. A creature blocks your path.",
+            choices: [
+                { text:"⚔️ Fight it", next:'battle' },
+                { text:"🏃 Sneak around", next:'flee' },
+                { text:"🔥 Try to intimidate it", next:'intimidate' },
+            ]
+        },
+        {
+            text: "A narrow canyon winds between two lava flows. Something rustles in the shadows ahead.",
+            choices: [
+                { text:"⚔️ Confront", next:'battle' },
+                { text:"🌿 Search the rocks first", next:'search' },
+                { text:"🔥 Burn a path through", next:'fire' },
+            ]
+        },
+        {
+            text: "You reach an old Tyrannian ruin — crumbling stone archways covered in volcanic moss. A creature guards the exit.",
+            choices: [
+                { text:"⚔️ Battle for the exit", next:'battle' },
+                { text:"🛡️ Approach carefully", next:'battle' },
+                { text:"💬 Try to reason with it", next:'talk' },
+            ]
+        },
+        {
+            text: "Lava drips from a cliff above. A creature perches on a ledge, watching you with wary eyes.",
+            choices: [
+                { text:"⚔️ Throw a rock", next:'battle' },
+                { text:"🍳 Offer food", next:'friend' },
+                { text:"🔥 Breathe fire at the ledge", next:'fire' },
+            ]
+        },
+        {
+            text: "A hidden cave entrance is marked with ancient Tyrannian symbols. Something moves inside.",
+            choices: [
+                { text:"🔥 Light the way with fire breath", next:'battle' },
+                { text:"👀 Listen carefully", next:'ambush' },
+                { text:"💰 Check for treasure", next:'treasure' },
+            ]
+        },
+    ];
+
+    const NARRATIVES = {
+        flee: "You dart between the rocks, heart pounding. You escape — but the detour costs energy.",
+        intimidate: "You flare your spines and roar. The creature flinches — and retreats! Experience gained.",
+        search: "You find a small pile of volcanic stones... and an ambush! Battle!",
+        fire: "Your fire lights up the path — no creatures dare approach. You advance safely.",
+        talk: "You speak softly. The creature tilts its head... and attacks anyway. Here we go.",
+        friend: "You toss a berry. The creature catches it... and seems to consider you. Then it attacks.",
+        ambush: "You were right to be careful — but not careful enough. Ambush battle!",
+        treasure: "NP scattered on the ground! But something guarding it doesn't want you to take it.",
+        boss_text: "A massive HAG rises from the volcanic rocks, ancient and furious. This is the guardian of Tyrannia. Final battle!",
+    };
+
+    let state = (function(){ try { var s = localStorage.getItem('tyrannia-save'); return s ? JSON.parse(s) : null; } catch(e){ return null; } })() || { hp:50, maxHp:50, np:0, floor:1, maxFloor:5, potions:3, defendNext:false, inBattle:false, enemy:null, encountersDone:0 };
+
+    function $(id) { return document.getElementById(id); }
+    function bar(barId, textId, cur, max) {
+        $(barId).style.width = Math.max(0, (cur/max)*100) + '%';
+        $(textId).textContent = Math.max(0, cur);
+    }
+
+    function showScreen(name) {
+        ['battle-screen','explore-screen','gameover-screen','victory-screen'].forEach(s => $(s).classList.add('hidden'));
+        $(name).classList.remove('hidden');
+    }
+
+    function startGame() {
+        state = { hp:50, maxHp:50, np:0, floor:1, maxFloor:5, potions:3, defendNext:false, inBattle:false, enemy:null, encountersDone:0 };
+        save(); updateHUD(); showScreen('explore-screen'); nextEncounter();
+    }
+    function save() { try { localStorage.setItem('tyrannia-save', JSON.stringify(state)); } catch(e){} }
+    function autoSave() { save(); }
+    function toast(msg) {
+        var t = document.createElement('div');
+        t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1c1108;border:1px solid rgba(200,100,20,0.5);border-radius:8px;padding:8px 16px;color:#f97316;font-size:12px;font-weight:700;z-index:500;transition:opacity 0.5s;';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.remove(); }, 500); }, 1200);
+    }
+
+    function updateHUD() {
+        bar('hp-bar','hp-text', state.hp, state.maxHp);
+        $('np-display').textContent = state.np;
+        $('floor-display').textContent = state.floor;
+        $('pot-count').textContent = state.potions;
+        $('pot-btn').textContent = state.potions;
+    }
+
+    function spawnFloat(spriteId, text, cls) {
+        const el = document.createElement('div');
+        el.className = 'damage-float' + (cls ? ' ' + cls : '');
+        el.textContent = text;
+        el.style.left = '40%';
+        el.style.top = '30%';
+        const parent = spriteId ? $(spriteId) : $('hud');
+        const rect = parent.getBoundingClientRect();
+        document.body.appendChild(el);
+        el.style.position = 'fixed';
+        el.style.left = (rect.left + rect.width * 0.4) + 'px';
+        el.style.top = (rect.top + rect.height * 0.3) + 'px';
+        el.style.zIndex = '200';
+        setTimeout(() => el.remove(), 1000);
+    }
+
+    function addLog(text) {
+        const el = document.createElement('div');
+        el.className = 'text-xs text-slate-300 fade-in';
+        el.textContent = '> ' + text;
+        $('log-entries').appendChild(el);
+        $('battle-log').scrollTop = $('battle-log').scrollHeight;
+    }
+
+    function nextEncounter() {
+        state.inBattle = false;
+        $('choices').innerHTML = '';
+
+        if (state.floor > state.maxFloor) {
+            showVictory(); return;
+        }
+
+        // Boss every 5th floor
+        if (state.encountersDone > 0 && state.encountersDone % 4 === 0) {
+            state.floor++;
+            updateHUD();
+            if (state.floor > state.maxFloor) { showVictory(); return; }
+            showBossEncounter(); return;
+        }
+
+        const enc = ENCOUNTERS[Math.floor(Math.random() * ENCOUNTERS.length)];
+        $('narrative-text').textContent = enc.text;
+
+        enc.choices.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-choice';
+            btn.textContent = c.text;
+            btn.onclick = () => handleChoice(c.next);
+            $('choices').appendChild(btn);
+        });
+    }
+
+    function handleChoice(type) {
+        if (type === 'battle') { startBattle(); return; }
+        const narratives = {
+            flee: { text: NARRATIVES.flee, effect: () => { state.hp -= 5; updateHUD(); } },
+            intimidate: { text: NARRATIVES.intimidate, effect: () => { state.np += 5; updateHUD(); } },
+            search: { text: NARRATIVES.search, effect: () => {} },
+            fire: { text: NARRATIVES.fire, effect: () => { state.hp = Math.min(state.maxHp, state.hp + 5); updateHUD(); } },
+            talk: { text: NARRATIVES.talk, effect: () => {} },
+            friend: { text: NARRATIVES.friend, effect: () => {} },
+            ambush: { text: NARRATIVES.ambush, effect: () => {} },
+            treasure: { text: NARRATIVES.treasure, effect: () => { state.np += 20; updateHUD(); } },
+        };
+        const n = narratives[type];
+        if (!n) { startBattle(); return; }
+        $('narrative-text').textContent = n.text;
+        if (n.effect) n.effect();
+        $('choices').innerHTML = '';
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-choice py-3';
+        btn.textContent = '→ Continue';
+        btn.onclick = () => { state.encountersDone++; nextEncounter(); };
+        $('choices').appendChild(btn);
+    }
+
+    function showBossEncounter() {
+        $('narrative-text').textContent = NARRATIVES.boss_text;
+        $('choices').innerHTML = '';
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-choice py-3 text-center';
+        btn.textContent = '⚔️ Face the HAG';
+        btn.onclick = () => startBattle(true);
+        $('choices').appendChild(btn);
+    }
+
+    function startBattle(boss) {
+        state.inBattle = true;
+        state.defendNext = false;
+        const pool = boss ? [ENEMIES[5]] : ENEMIES.slice(0, 5);
+        const template = pool[Math.floor(Math.random() * pool.length)];
+        state.enemy = { ...template };
+        if (!boss) {
+            const scale = 1 + (state.floor - 1) * 0.2;
+            state.enemy.hp = Math.floor(template.hp * scale);
+            state.enemy.atk = Math.floor(template.atk * scale);
+            state.enemy.xp = Math.floor(template.xp * scale);
+            state.enemy.np = Math.floor(template.np * scale);
+        }
+        state.enemy.curHp = state.enemy.hp;
+
+        showScreen('battle-screen');
+        $('scene-name').textContent = boss ? '🔥 Boss Floor ' + state.floor : 'Floor ' + state.floor + ' · ' + ENCOUNTERS[0].text.split('.')[0];
+        $('enemy-sprite').textContent = state.enemy.emoji;
+        $('enemy-name').textContent = state.enemy.name;
+        $('enemy-lv').textContent = Math.floor(state.enemy.hp / 5);
+        $('enemy-quote').textContent = state.enemy.quote;
+        bar('enemy-hp-bar','enemy-hp-text', state.enemy.curHp, state.enemy.hp);
+        $('enemy-hp-max').textContent = state.enemy.hp;
+        $('log-entries').innerHTML = '';
+        addLog('A wild ' + state.enemy.name + ' appears!');
+        $('battle-actions').classList.remove('hidden');
+        $('battle-continue').classList.add('hidden');
+        updateHUD();
+    }
+
+    function doAction(type) {
+        if (!state.inBattle || !state.enemy) return;
+        const e = state.enemy;
+
+        if (type === 'run') {
+            if (Math.random() < 0.5) {
+                addLog('Got away safely!');
+                $('battle-actions').classList.add('hidden');
+                $('battle-continue').classList.remove('hidden');
+            } else {
+                addLog('Failed to escape!');
+                enemyTurn();
+            }
+            return;
+        }
+
+        if (type === 'potion') {
+            if (state.potions <= 0) { addLog('No potions left!'); return; }
+            state.potions--;
+            state.hp = Math.min(state.maxHp, state.hp + 25);
+            addLog('Used potion! +25 HP');
+            spawnFloat(null, '+25 HP', 'heal-float');
+            updateHUD();
+            enemyTurn();
+            return;
+        }
+
+        if (type === 'defend') {
+            state.defendNext = true;
+            addLog('You brace for impact!');
+            enemyTurn();
+            return;
+        }
+
+        let damage = 0;
+        if (type === 'attack') {
+            damage = 6 + Math.floor(Math.random() * 5) + state.floor;
+            addLog('You claw for ' + damage + ' damage!');
+        } else if (type === 'fire') {
+            damage = 12 + Math.floor(Math.random() * 8) + state.floor * 2;
+            addLog('FIRE BREATH! ' + damage + ' damage!');
+        }
+
+        e.curHp -= damage;
+        spawnFloat('enemy-sprite', '-' + damage);
+        $('enemy-sprite').classList.add('shake');
+        setTimeout(() => $('enemy-sprite').classList.remove('shake'), 400);
+
+        if (e.curHp <= 0) {
+            enemyDefeated(); return;
+        }
+
+        bar('enemy-hp-bar','enemy-hp-text', e.curHp, e.hp);
+        enemyTurn();
+    }
+
+    function enemyTurn() {
+        if (!state.enemy) return;
+        const e = state.enemy;
+        let dmg = e.atk + Math.floor(Math.random() * 3);
+        if (state.defendNext) { dmg = Math.floor(dmg * 0.5); addLog('Defended! Only ' + dmg + ' damage!'); state.defendNext = false; }
+        else addLog(e.name + ' attacks for ' + dmg + '!');
+        state.hp -= dmg;
+        spawnFloat('enemy-sprite', '-' + dmg);
+        $('enemy-sprite').classList.add('flash-red');
+        setTimeout(() => $('enemy-sprite').classList.remove('flash-red'), 300);
+        updateHUD();
+
+        if (state.hp <= 0) {
+            state.hp = 0;
+            updateHUD();
+            gameOver(); return;
+        }
+    }
+
+    function enemyDefeated() {
+        const e = state.enemy;
+        const npGain = e.np;
+        state.np += npGain;
+        addLog(e.name + ' defeated! +' + npGain + ' NP');
+        spawnFloat('enemy-sprite', '+' + npGain + ' NP', 'xp-float');
+        $('battle-actions').classList.add('hidden');
+        $('battle-continue').classList.remove('hidden');
+        updateHUD();
+        state.encountersDone++;
+    }
+
+    function continueAfterBattle() {
+        state.floor++; autoSave(); updateHUD();
+        if (state.floor > state.maxFloor) { showVictory(); autoSave(); return; }
+        showScreen('explore-screen'); nextEncounter();
+    }
+
+    function showVictory() {
+        autoSave();
+        showScreen('victory-screen');
+        $('vic-np').textContent = state.np;
+        $('vic-hp').textContent = state.hp;
+    }
+
+    function gameOver() {
+        autoSave();
+        showScreen('gameover-screen');
+        $('go-floor').textContent = state.floor;
+        $('go-np').textContent = state.np;
+        addLog('You collapsed in the volcanic heat...');
+    }
+
+    // Start
+    startGame();
+
+    // Bind button events (IIFE scope fix)
+    $('btn-attack').addEventListener('click', () => doAction('attack'));
+    $('btn-fire').addEventListener('click', () => doAction('fire'));
+    $('btn-defend').addEventListener('click', () => doAction('defend'));
+    $('btn-potion').addEventListener('click', () => doAction('potion'));
+    $('btn-run').addEventListener('click', () => doAction('run'));
+    $('btn-continue').addEventListener('click', continueAfterBattle);
+    $('btn-retry').addEventListener('click', startGame);
+    $('btn-replay').addEventListener('click', startGame);
+    $('btn-save').addEventListener('click', function(){ save(); toast('💾 Saved!'); });
+    $('btn-load').addEventListener('click', function(){
+        try { var s = localStorage.getItem('tyrannia-save'); if (!s) { toast('No save found'); return; }
+            state = JSON.parse(s); updateHUD();
+            if (state.inBattle && state.enemy) {
+                showScreen('battle-screen');
+                $('enemy-sprite').textContent = state.enemy.emoji;
+                $('enemy-name').textContent = state.enemy.name;
+                $('enemy-lv').textContent = Math.floor(state.enemy.hp / 5);
+                $('enemy-quote').textContent = state.enemy.quote;
+                bar('enemy-hp-bar','enemy-hp-text', state.enemy.curHp, state.enemy.hp);
+                $('enemy-hp-max').textContent = state.enemy.hp;
+                $('log-entries').innerHTML = '<div class="text-xs text-green-400">Game loaded!</div>';
+                $('battle-actions').classList.remove('hidden');
+                $('battle-continue').classList.add('hidden');
+            } else { showScreen('explore-screen'); nextEncounter(); }
+            toast('📂 Loaded!');
+        } catch(e){ toast('Load failed'); }
+    });
+})();
+</script>
+</body>
+</html>
