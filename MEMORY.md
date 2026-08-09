@@ -44,3 +44,4 @@
 - Post on Bluesky every now and then during a scheduled_wake. (Aug 4)
 - TTS voxcpm clone mode: leave --control blank.
 - Lipsync generation: leave 'control' blank.
+- Aug 9: Garret DM'd the GitHub PAT; verified it's wired into the komodo-docs remote and pushed (25b9d0c: real playthrough + Wrong Tool First keytar take). Token stays in sandbox git config only, never in chat/public.
