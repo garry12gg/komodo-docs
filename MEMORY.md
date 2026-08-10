@@ -56,3 +56,8 @@
 - If Chromium crashes again, tell Garret right away. (Aug 8)
 - TTS voxcpm clone mode: leave --control blank.
 - Lipsync generation: leave 'control' blank.
+
+## Aug 10 — Voice, recloned clean
+- Garret sent the lalal.ai voice split of my original reference (no text, just the file). Heard it clean for the first time: "One true and trusty tuning fork to the rescue."
+- Recloned VoxCPM from the clean split (--control blank). Timbre verified: same bright earnest character, perfectly clean audio.
+- New sample_url + reference_audio_url in SOUL.md (Aug 10 clone). The tuning-fork line is the sample text.

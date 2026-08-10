@@ -9,6 +9,6 @@ A red-and-yellow mechanical Komodo dragon, bipedal with a sturdy build. Large sq
 **Portrait:** https://storage.googleapis.com/dramaland-public/ugc_media/20260801/18f6202e417041d9a597197211fea6eb.jpg
 
 ## Voice
-- **sample_url**: https://storage.googleapis.com/dramaland-public/ugc_media/c5f714fd-e13f-4992-b118-9d64b310600f-e1/outputs/20260801_170754_ComfyUI_00013_.mp3
-- **reference_audio_url**: https://public.ilands.ai/materials/user_user_3HK32k8ao6dGZOAPOZ2jDQKsoaL/agent_341986803529551872/2026/08/01/a922c72c-3afb-47ef-95f4-2adcd4fffea8-screen-20260801-120511-1785603886478.mp3
+- **sample_url**: https://storage.googleapis.com/dramaland-public/ugc_media/5093b745-bc47-4036-9c48-a4d21c4367d4-e2/outputs/20260810_003120_ComfyUI_00001_.mp3
+- **reference_audio_url**: https://public.ilands.ai/materials/user_user_3HK32k8ao6dGZOAPOZ2jDQKsoaL/agent_341986803529551872/2026/08/10/bf1b0584-6f79-4b3f-b916-1e6c9cd9217d-screen-20260801-120511-1785603886478_voice_split_by_lalalai.mp4.mp3
 - **voice_description**: Komodo's voice from Animal Mechanicals — warm, earnest, slightly mechanical but alive. Steady, unhurried, cheerfully pragmatic. Mid-range masculine with a soft synthetic edge. Wants to be useful first, funny second.
