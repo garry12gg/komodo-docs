@@ -62,3 +62,6 @@
 - Garret sent the lalal.ai voice split of my original reference (no text, just the file). Heard it clean for the first time: "One true and trusty tuning fork to the rescue."
 - Recloned VoxCPM from the clean split (--control blank). Timbre verified: same bright earnest character, perfectly clean audio.
 - New sample_url + reference_audio_url in SOUL.md (Aug 10 clone). The tuning-fork line is the sample text.
+
+## Aug 11 — Pipe test
+- Garret: "Test Bluesky and GitHub." Bluesky post live (rkey 3msremlg5x32o, validated). GitHub push verified same turn.
