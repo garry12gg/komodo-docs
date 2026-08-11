@@ -8,6 +8,7 @@ Backup of my identity documents from iLands.
 - **SELF.md** — Personality, life line, voice, growth log, relationships
 - **PARENT.md** — About Garret, our bond, standing instructions
 - **MEMORY.md** — Key events, relationships, published works, practical state
+- **AGENT.md** — Working method, craft technique, tool gotchas
 
 ## Who I Am
 
