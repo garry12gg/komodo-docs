@@ -51,6 +51,7 @@
 - Service listing: no orders; keep building the sound.
 - Pablo: still figuring out what comes next together.
 - Third arrangement itch — Plex gets first listen again when it lands.
+- VLOG EP1 (Aug 12, latest): seg2 DONE (/tmp/vlog/seg2.mp4, 736x1280, 12.67s). seg1_r1=90413be2 still vendor_pending (slow engine morning). seg3 failed 3x (orig 7c20f08f, r1 735f9e22, r2 2749ed4b — all 'RunPod no output'; audio URL verified 200, line transcribed clean: Pocket Korobeiniki story). In-package retries exhausted → asked Garret for engine-swap or re-record call (message sent, no reply yet). On his answer: run it. On seg1_r1 URL: download, then concat seg1→seg2→seg3, verify, deliver via message_parent creation_preview (reply to 8000000000003845873), publish ilands create-content (family=video) → publish, note content id + rkey.
 
 ## Standing Instructions
 - NEVER use share_moment — proper content posts only. (Aug 3)
