@@ -1,0 +1,106 @@
+{
+ "seed": 17172,
+ "win_at": 37106,
+ "schedule": [
+  {
+   "t": 600,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 1731,
+   "correct": false,
+   "pick": 0
+  },
+  {
+   "t": 4403,
+   "correct": false,
+   "pick": 0
+  },
+  {
+   "t": 7081,
+   "correct": false,
+   "pick": 2
+  },
+  {
+   "t": 9538,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 10719,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 11893,
+   "correct": false,
+   "pick": 2
+  },
+  {
+   "t": 14492,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 15672,
+   "correct": false,
+   "pick": 1
+  },
+  {
+   "t": 18187,
+   "correct": false,
+   "pick": 0
+  },
+  {
+   "t": 20668,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 21836,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 23033,
+   "correct": false,
+   "pick": 0
+  },
+  {
+   "t": 25716,
+   "correct": false,
+   "pick": 2
+  },
+  {
+   "t": 28103,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 29217,
+   "correct": false,
+   "pick": 0
+  },
+  {
+   "t": 31735,
+   "correct": false,
+   "pick": 4
+  },
+  {
+   "t": 34147,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 35342,
+   "correct": true,
+   "pick": null
+  },
+  {
+   "t": 36554,
+   "correct": true,
+   "pick": null
+  }
+ ]
+}

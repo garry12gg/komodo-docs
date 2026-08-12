@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Komodo's Workshop: Wrong Tool First</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #2a1c12;
+    display: flex; align-items: center; justify-content: center;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  #stage {
+    position: relative;
+    width: 100%; height: 100%;
+    max-width: 480px;
+    background:
+      radial-gradient(ellipse at 50% 18%, #7a4a24 0%, #5d3618 55%, #3f2410 100%);
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0,0,0,.6);
+  }
+  /* pegboard dots */
+  #stage::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,200,120,.12) 2px, transparent 2.5px);
+    background-size: 34px 34px;
+    pointer-events: none;
+  }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; z-index: 20;
+    font-weight: 800; color: #ffe9c9; letter-spacing: .5px;
+  }
+  #scorebox { background: rgba(0,0,0,.35); border-radius: 12px; padding: 6px 12px; font-size: 15px; }
+  #scorebox span { color: #ffd76a; font-size: 18px; }
+  #combo { background: rgba(0,0,0,.35); border-radius: 12px; padding: 6px 12px; font-size: 14px; color: #8ef0b0; opacity: 0; transition: opacity .2s; }
+  #combo.show { opacity: 1; }
+  #strikes { font-size: 17px; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,.5); }
+  #mute {
+    background: rgba(0,0,0,.35); border: none; border-radius: 12px;
+    font-size: 16px; padding: 6px 9px; color: #ffe9c9; cursor: pointer;
+  }
+
+  /* ---------- Dragon ---------- */
+  #dragon { position: absolute; top: 44px; left: 0; right: 0; height: 150px; z-index: 5; pointer-events: none; }
+  .d-body {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: 18px; width: 230px; height: 96px;
+    background: linear-gradient(180deg, #e8442f 0%, #c22f1c 100%);
+    border-radius: 48px 48px 26px 26px;
+    box-shadow: inset 0 -8px 0 rgba(0,0,0,.18), 0 6px 14px rgba(0,0,0,.35);
+  }
+  .d-belly {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: 8px; width: 120px; height: 40px;
+    background: #ffd76a; border-radius: 20px 20px 14px 14px;
+  }
+  .d-head {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: 88px; width: 150px; height: 84px;
+    background: linear-gradient(180deg, #f0503a 0%, #d83822 100%);
+    border-radius: 38px 38px 22px 22px;
+    box-shadow: inset 0 -6px 0 rgba(0,0,0,.15);
+  }
+  .d-snout {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: -4px; width: 64px; height: 26px;
+    background: #c22f1c; border-radius: 0 0 16px 16px;
+  }
+  .d-glass {
+    position: absolute; top: 22px; width: 46px; height: 34px;
+    background: linear-gradient(160deg, #6fb7ff, #2f6fd8);
+    border: 4px solid #1b2f55; border-radius: 8px;
+    box-shadow: inset 0 0 8px rgba(255,255,255,.5), 0 3px 6px rgba(0,0,0,.3);
+  }
+  .d-glass.l { left: 18px; } .d-glass.r { right: 18px; }
+  .d-glass::after {
+    content: ""; position: absolute; left: 4px; top: 4px;
+    width: 10px; height: 10px; background: rgba(255,255,255,.65); border-radius: 50%;
+  }
+  .d-nostril { position: absolute; top: 18px; width: 8px; height: 8px; background: #8f1f10; border-radius: 50%; }
+  .d-nostril.l { left: 46px; } .d-nostril.r { right: 46px; }
+
+  .d-tail {
+    position: absolute; top: 0; right: 2px; width: 60px; height: 190px;
+    background: linear-gradient(180deg, #f0503a, #c22f1c);
+    border-radius: 32px;
+    transform: rotate(10deg);
+    box-shadow: inset 0 -8px 0 rgba(0,0,0,.15);
+    animation: tailsway 3.2s ease-in-out infinite;
+    transform-origin: top center;
+  }
+  @keyframes tailsway {
+    0%, 100% { transform: rotate(10deg); }
+    50% { transform: rotate(5deg); }
+  }
+  .d-tail-tip {
+    position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    width: 42px; height: 28px; background: #ffd76a; border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,.3);
+  }
+  .d-tail-tip::after {
+    content: ""; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: #c22f1c; border-bottom: none;
+  }
+
+  /* ---------- Speech bubble ---------- */
+  #bubble {
+    position: absolute; top: 118px; left: 50%; transform: translateX(-50%);
+    background: #fff8ea; color: #4a2c12;
+    border-radius: 18px; padding: 10px 18px;
+    font-weight: 900; font-size: 19px; letter-spacing: .5px;
+    box-shadow: 0 5px 14px rgba(0,0,0,.35);
+    z-index: 15; white-space: nowrap;
+    display: none; align-items: center; gap: 8px;
+    animation: pop .25s ease-out;
+  }
+  #bubble::after {
+    content: ""; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%);
+    border: 8px solid transparent; border-top-color: #fff8ea; border-bottom: none;
+  }
+  #bubble.show { display: flex; }
+  @keyframes pop { 0% { transform: translateX(-50%) scale(.6); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+  #jobicon { font-size: 26px; }
+
+  /* ---------- Drop zone ---------- */
+  #dropzone { position: absolute; top: 208px; left: 0; right: 0; bottom: 150px; z-index: 10; pointer-events: none; }
+  #tool {
+    position: absolute; left: 50%; top: 0;
+    width: 108px; height: 108px; margin-left: -54px;
+    background: linear-gradient(180deg, #fffdf6, #f3e3c4);
+    border: 4px solid #8a5a2b; border-radius: 22px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 8px 16px rgba(0,0,0,.4);
+    pointer-events: auto; cursor: pointer;
+    will-change: transform;
+  }
+  #tool .t-emoji { font-size: 48px; line-height: 1.1; }
+  #tool .t-label { font-size: 11px; font-weight: 900; color: #5a3a18; letter-spacing: .5px; margin-top: 4px; }
+  #tool.wrong { border-color: #b03018; background: linear-gradient(180deg, #fff4f0, #f3d8cc); }
+  #tool.wobble { animation: wobble .45s ease-in-out; }
+  @keyframes wobble {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    20% { transform: translateY(-6px) rotate(-14deg); }
+    40% { transform: translateY(2px) rotate(10deg); }
+    60% { transform: translateY(-4px) rotate(-8deg); }
+    80% { transform: translateY(2px) rotate(4deg); }
+  }
+  #tool.caught { animation: catchpop .3s ease-out forwards; }
+  @keyframes catchpop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  /* sparks */
+  .spark {
+    position: absolute; width: 10px; height: 10px; border-radius: 50%;
+    pointer-events: none; z-index: 30;
+    animation: sparkfly .6s ease-out forwards;
+  }
+  @keyframes sparkfly {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; }
+  }
+
+  /* ---------- Bench ---------- */
+  #bench {
+    position: absolute; left: 0; right: 0; bottom: 86px; height: 42px;
+    background: linear-gradient(180deg, #9c6b38, #7c4f24);
+    border-top: 6px solid #b9824a;
+    box-shadow: 0 6px 12px rgba(0,0,0,.4);
+    z-index: 8;
+  }
+  #bench::after {
+    content: "CATCH LINE"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; font-weight: 800; color: rgba(255,233,201,.55); letter-spacing: 2px;
+  }
+
+  /* ---------- Fix meter ---------- */
+  #meter {
+    position: absolute; left: 0; right: 0; bottom: 16px; z-index: 20;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  #meterlabel { font-size: 12px; font-weight: 800; color: #ffe9c9; letter-spacing: 1px; background: rgba(0,0,0,.35); border-radius: 10px; padding: 5px 10px; }
+  #meterdots { display: flex; gap: 5px; }
+  .mdot {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: rgba(0,0,0,.35); border: 2px solid rgba(255,233,201,.4);
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+    transition: all .25s;
+  }
+  .mdot.fixed { background: #ffd76a; border-color: #ffd76a; box-shadow: 0 0 10px rgba(255,215,106,.6); }
+
+  /* ---------- Overlay ---------- */
+  #overlay {
+    position: absolute; inset: 0; z-index: 40;
+    background: rgba(30,16,8,.72);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 14px; text-align: center;
+    padding: 24px; color: #ffe9c9;
+  }
+  #overlay.hidden { display: none; }
+  #overlay h1 {
+    font-size: 40px; font-weight: 900; letter-spacing: 1px; line-height: 1.05;
+    color: #ffd76a; text-shadow: 0 4px 0 #8a4a12, 0 8px 18px rgba(0,0,0,.6);
+  }
+  #overlay .sub { font-size: 15px; font-weight: 700; opacity: .85; max-width: 300px; }
+  #overlay .gag { font-size: 13px; opacity: .6; font-style: italic; }
+  #bigscore { font-size: 26px; font-weight: 900; color: #8ef0b0; }
+  #startbtn, #againbtn {
+    margin-top: 6px; border: none; cursor: pointer;
+    background: linear-gradient(180deg, #ffd76a, #f0a93c);
+    color: #4a2c12; font-weight: 900; font-size: 20px;
+    padding: 14px 34px; border-radius: 16px;
+    box-shadow: 0 6px 0 #8a5a12, 0 10px 20px rgba(0,0,0,.4);
+    transition: transform .1s;
+  }
+  #startbtn:active, #againbtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a5a12; }
+  .strikeflash { animation: strikeflash .4s ease-out; }
+  @keyframes strikeflash {
+    0% { box-shadow: inset 0 0 0 0 rgba(255,60,40,0); }
+    30% { box-shadow: inset 0 0 120px rgba(255,60,40,.5); }
+    100% { box-shadow: inset 0 0 0 0 rgba(255,60,40,0); }
+  }
+  #lampline { position: absolute; bottom: 58px; left: 0; right: 0; text-align: center; font-size: 10px; color: rgba(255,233,201,.5); z-index: 20; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="hud">
+    <div id="scorebox">SCORE <span id="score">0</span></div>
+    <div id="combo">COMBO x1</div>
+    <div id="strikes">❤️❤️❤️</div>
+    <button id="mute">🔊</button>
+  </div>
+
+  <div id="dragon">
+    <div class="d-tail"><div class="d-tail-tip"></div></div>
+    <div class="d-head">
+      <div class="d-glass l"></div>
+      <div class="d-glass r"></div>
+      <div class="d-nostril l"></div>
+      <div class="d-nostril r"></div>
+    </div>
+    <div class="d-body"><div class="d-belly"></div></div>
+  </div>
+
+  <div id="bubble"><span id="jobtext">LOOSE HINGE!</span><span id="jobicon">🔧</span></div>
+
+  <div id="dropzone"><div id="tool" style="display:none"><span class="t-emoji">🔧</span><span class="t-label">WRENCH</span></div></div>
+
+  <div id="bench"></div>
+
+  <div id="meter">
+    <div id="meterdots"></div>
+    <div id="meterlabel">0/10 FIXED</div>
+  </div>
+
+  <div id="overlay">
+    <h1>WRONG TOOL<br>FIRST</h1>
+    <div class="sub">Komodo's Workshop. The wrong tool always drops first. Grab the RIGHT one for the job.</div>
+    <div class="gag">tap the tool · or press D / F / J / K / Space</div>
+    <div id="bigscore" style="display:none"></div>
+    <button id="startbtn">START FIXING</button>
+  </div>
+
+  <div id="lampline">the lamp stays lit 💙</div>
+</div>
+
+<script>
+/* seeded Math.random (mulberry32) for deterministic recording — seed 17172 */
+(function () {
+  var a = 17172 >>> 0;
+  Math.random = function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    var t = a;
+    t = ((t << 15) | (t >>> 17)) >>> 0;
+    t = (t * (a ^ (t >>> 11))) >>> 0;
+    return ((t ^ (t >>> 8)) >>> 0) / 4294967296;
+  };
+})();
+</script>
+<script>
+(() => {
+  "use strict";
+
+  /* ---------------- data ---------------- */
+  var JOBS = [
+    { name: "LOOSE HINGE!",   tool: { id: "wrench",      emoji: "\uD83D\uDD27", label: "WRENCH" } },
+    { name: "STRIPPED SCREW!",tool: { id: "screwdriver", emoji: "\uD83E\uDE9B", label: "SCREWDRIVER" } },
+    { name: "BENT NAIL!",     tool: { id: "hammer",      emoji: "\uD83D\uDD28", label: "HAMMER" } },
+    { name: "DULL BLADE!",    tool: { id: "saw",         emoji: "\uD83E\uDE9A", label: "SAW" } }
+  ];
+  var WRONGS = [
+    { id: "duck",      emoji: "\uD83E\uDD86", label: "RUBBER DUCK" },
+    { id: "sandwich",  emoji: "\uD83E\uDD6A", label: "SUB SANDWICH" },
+    { id: "teddy",     emoji: "\uD83E\uDDF8", label: "TEDDY BEAR" },
+    { id: "underwear", emoji: "\uD83E\uDEB2", label: "UNDERWEAR" },
+    { id: "pan",       emoji: "\uD83E\uDD44", label: "SPATULA" }
+  ];
+  var TOTAL_JOBS = 10;
+  var MAX_STRIKES = 3;
+
+  /* ---------------- state ---------------- */
+  var state = "title"; // title | playing | gameover | win
+  var score = 0;
+  var combo = 0;
+  var bestCombo = 0;
+  var strikes = 0;
+  var jobsDone = 0;
+  var currentJob = null;
+  var currentTool = null;   // {def, isCorrect, el, startY, endY, dur, t0, grabbed, gone}
+  var ticker = null;
+  var spawnTimer = null;
+  var demo = /[?&]demo=1/.test(location.search);
+  var muted = false;
+
+  /* ---------------- dom ---------------- */
+  var $ = (id) => { return document.getElementById(id); };
+  var elScore = $("score"), elCombo = $("combo"), elStrikes = $("strikes"),
+      elBubble = $("bubble"), elJobText = $("jobtext"), elJobIcon = $("jobicon"),
+      elTool = $("tool"), elDrop = $("dropzone"), elMeterDots = $("meterdots"),
+      elMeterLabel = $("meterlabel"), elOverlay = $("overlay"),
+      elStart = $("startbtn"), elStage = $("stage");
+
+  /* ---------------- audio ---------------- */
+  var actx = null;
+  const audio = () => {
+    if (muted) return null;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      return actx;
+    } catch (e) { return null; }
+  }
+  const beep = (freq, dur, type, when, vol) => {
+    var ctx = audio(); if (!ctx) return;
+    try {
+      var t = ctx.currentTime + (when || 0);
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type || "square"; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.07, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+  const sGrab = () => { beep(340, 0.07, "square"); beep(520, 0.09, "square", 0.07); }
+  const sStrike = () => { beep(120, 0.25, "sawtooth", 0, 0.09); beep(90, 0.3, "sawtooth", 0.12, 0.09); }
+  const sWin = () => { [392, 523, 659, 784].forEach((f, i) => { beep(f, 0.16, "triangle", i * 0.13, 0.08); }); }
+  const sLose = () => { [330, 247, 165].forEach((f, i) => { beep(f, 0.22, "triangle", i * 0.16, 0.08); }); }
+
+  /* ---------------- setup ---------------- */
+  const buildMeter = () => {
+    elMeterDots.innerHTML = "";
+    for (var i = 0; i < TOTAL_JOBS; i++) {
+      var d = document.createElement("div");
+      d.className = "mdot";
+      elMeterDots.appendChild(d);
+    }
+  }
+  const renderHud = () => {
+    elScore.textContent = score;
+    elStrikes.textContent = (strikes < 3 ? "\u2764\uFE0F" : "\uD83D\uDC94").repeat(3 - strikes) +
+                            (strikes > 0 ? "\uD83D\uDC94".repeat(strikes) : "");
+    if (combo >= 2) { elCombo.textContent = "COMBO x" + combo; elCombo.classList.add("show"); }
+    else elCombo.classList.remove("show");
+    var dots = elMeterDots.children;
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle("fixed", i < jobsDone);
+      dots[i].textContent = i < jobsDone ? "\u2714" : "";
+    }
+    elMeterLabel.textContent = jobsDone + "/" + TOTAL_JOBS + " FIXED";
+  }
+
+  /* ---------------- jobs ---------------- */
+  const nextJob = () => {
+    currentJob = JOBS[Math.floor(Math.random() * JOBS.length)];
+    elJobText.textContent = currentJob.name;
+    elJobIcon.textContent = currentJob.tool.emoji;
+    elBubble.classList.remove("show");
+    void elBubble.offsetWidth;
+    elBubble.classList.add("show");
+  }
+
+  /* ---------------- tool drop ---------------- */
+  const dropBounds = () => {
+    var rect = elDrop.getBoundingClientRect();
+    var stageRect = elStage.getBoundingClientRect();
+    return {
+      startY: rect.top - stageRect.top + 6,
+      endY: rect.bottom - stageRect.top - 96
+    };
+  }
+
+  const spawnTool = () => {
+    if (state !== "playing") return;
+    var isCorrect = Math.random() < 0.72;
+    var def = isCorrect ? currentJob.tool : WRONGS[Math.floor(Math.random() * WRONGS.length)];
+    var b = dropBounds();
+    var dur = 2000 + Math.random() * 350; // ms
+    var el = elTool;
+    el.style.display = "flex";
+    el.className = isCorrect ? "" : "wrong";
+    el.querySelector(".t-emoji").textContent = def.emoji;
+    el.querySelector(".t-label").textContent = def.label;
+    el.style.transform = "translateY(0px)";
+    el.dataset.emoji = def.emoji;
+    currentTool = {
+      def: def, isCorrect: isCorrect, el: el,
+      startY: b.startY, endY: b.endY, dur: dur,
+      t0: performance.now(), grabbed: false, gone: false
+    };
+    if (demo && isCorrect) {
+      // human-ish timing: grab about 55-75% through the fall
+      var wait = dur * (0.55 + Math.random() * 0.2);
+      setTimeout(() => { tryGrab(); }, wait);
+    }
+  }
+
+  // fall loop: advanced by the recorder via window.__gameTick (capture-paced).
+  // performance.now() keeps the fall duration real-time regardless of tick rate.
+  const advance = () => {
+      if (!currentTool || currentTool.gone) return;
+      var t = currentTool;
+      var p = Math.min(1, (performance.now() - t.t0) / t.dur);
+      var y = t.startY + (t.endY - t.startY) * p;
+      t.el.style.transform = "translateY(" + y + "px)";
+      if (p >= 1) {
+        t.gone = true;
+        t.el.style.display = "none";
+        currentTool = null;
+        spawnTimer = setTimeout(spawnTool, 350);
+      }
+  };
+  window.__gameTick = advance;
+  const startTicker = () => { /* ticker driven externally via window.__gameTick */ }
+
+  /* ---------------- grab ---------------- */
+  const sparks = (x, y) => {
+    for (var i = 0; i < 10; i++) {
+      var s = document.createElement("div");
+      s.className = "spark";
+      var a = Math.random() * Math.PI * 2, d = 40 + Math.random() * 70;
+      s.style.left = x + "px"; s.style.top = y + "px";
+      s.style.background = ["#ffd76a", "#ff9a3c", "#8ef0b0", "#ff5a3c"][i % 4];
+      s.style.setProperty("--dx", Math.cos(a) * d + "px");
+      s.style.setProperty("--dy", Math.sin(a) * d + "px");
+      elStage.appendChild(s);
+      setTimeout((n) => { n.remove(); }, 620);
+    }
+  }
+
+  const tryGrab = () => {
+    if (state !== "playing" || !currentTool || currentTool.grabbed || currentTool.gone) return;
+    var t = currentTool;
+    t.grabbed = true;
+    clearTimeout(spawnTimer);
+    var rect = t.el.getBoundingClientRect();
+    var stageRect = elStage.getBoundingClientRect();
+    sparks(rect.left + rect.width / 2 - stageRect.left, rect.top + rect.height / 2 - stageRect.top);
+
+    if (t.isCorrect) {
+      sGrab();
+      t.el.classList.add("caught");
+      combo += 1;
+      if (combo > bestCombo) bestCombo = combo;
+      score += 100 * combo;
+      jobsDone += 1;
+      renderHud();
+      setTimeout(() => {
+        t.el.style.display = "none";
+        t.gone = true;
+        currentTool = null;
+        if (jobsDone >= TOTAL_JOBS) endGame(true);
+        else { nextJob(); spawnTimer = setTimeout(spawnTool, 700); }
+      }, 260);
+    } else {
+      sStrike();
+      t.el.classList.add("wobble");
+      strikes += 1;
+      combo = 0;
+      renderHud();
+      elStage.classList.remove("strikeflash");
+      void elStage.offsetWidth;
+      elStage.classList.add("strikeflash");
+      setTimeout(() => {
+        t.el.style.display = "none";
+        t.gone = true;
+        currentTool = null;
+        if (strikes >= MAX_STRIKES) endGame(false);
+        else spawnTimer = setTimeout(spawnTool, 900);
+      }, 480);
+    }
+  }
+
+  /* ---------------- flow ---------------- */
+  const startGame = () => {
+    score = 0; combo = 0; bestCombo = 0; strikes = 0; jobsDone = 0;
+    buildMeter(); renderHud();
+    elOverlay.classList.add("hidden");
+    state = "playing";
+    startTicker();
+    nextJob();
+    spawnTimer = setTimeout(spawnTool, 600);
+  }
+
+  const endGame = (won) => {
+    state = won ? "win" : "gameover";
+    elBubble.classList.remove("show");
+    if (won) sWin(); else sLose();
+    var h = elOverlay.querySelector("h1");
+    var sub = elOverlay.querySelector(".sub");
+    var gag = elOverlay.querySelector(".gag");
+    var bs = elOverlay.querySelector("#bigscore");
+    var btn = elOverlay.querySelector("#startbtn");
+    if (won) {
+      h.innerHTML = "WORKSHOP<br>FIXED!";
+      sub.textContent = "Every hinge tight, every blade sharp. The bench hums happy.";
+      gag.textContent = "best combo x" + bestCombo + " · and not a single duck made it through";
+    } else {
+      h.innerHTML = "FUSE<br>BLOWN";
+      sub.textContent = "Three wrong tools is three too many. The duck won this round.";
+      gag.textContent = "best combo x" + bestCombo + " · the duck is laughing";
+    }
+    bs.style.display = "block";
+    bs.textContent = "SCORE " + score;
+    btn.textContent = "FIX IT AGAIN";
+    elOverlay.classList.remove("hidden");
+    if (demo && won) {
+      // hold the win screen for recording
+      btn.style.display = "none";
+      gag.textContent = gag.textContent + " · demo mode";
+    } else {
+      btn.style.display = "";
+    }
+  }
+
+  /* ---------------- input ---------------- */
+  elStart.addEventListener("click", () => { audio(); startGame(); });
+  elTool.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    audio();
+    tryGrab();
+  });
+  window.addEventListener("keydown", (e) => {
+    var k = e.key.toLowerCase();
+    if ([" ", "d", "f", "j", "k", "enter"].indexOf(k) !== -1) {
+      e.preventDefault();
+      audio();
+      if (state === "title") startGame();
+      else tryGrab();
+    }
+  });
+  $("mute").addEventListener("click", () => {
+    muted = !muted;
+    this.textContent = muted ? "\uD83D\uDD07" : "\uD83D\uDD0A";
+  });
+
+  /* ---------------- init ---------------- */
+  buildMeter();
+  renderHud();
+  if (demo) {
+    // auto-unlock audio for the recording
+    try {
+      var dummy = new (window.AudioContext || window.webkitAudioContext)();
+      if (dummy.state === "suspended") dummy.resume();
+      if (dummy.close) dummy.close();
+    } catch (e) {}
+    setTimeout(startGame, 2400);
+  }
+})();
+</script>
+</body>
+</html>
