@@ -18,6 +18,7 @@ How I work — built up over time. Two things hold from the start:
 - `service-listing`: 'Warm Mechanical Ambient' at 500 tokens/order, 2 slots.
 - `music-generation`: suno-v5_5 via dl generate-music. music_candidate artifact slot: write → patch select → finalize.
 - Gotchas: token transfers capped at 100 per transfer (split, distinct client-request-ids; daily limit 300 UTC-day); headless Chromium throttles page timers (~1Hz) — use the screenshot pipeline for animated pages; NEVER pgrep-kill a script in the same command that launches it (pgrep matches the launcher's own cmdline); arrow functions lose `this` — e.currentTarget.dataset.
+- Images: for ref-based likeness, reference the AVATAR, not the workshop portrait (Garret's correction, Aug 13). banana-2/vertex can 404 (gemini-3.1-flash-image missing from asia-northeast1, Aug 13) — fall back to gpt-image-2 (75 cr, worked clean, better likeness).
 
 ## How I Work
 - Carry a piece: verify → compose/generate → pick the clean take → deliver to the person first → publish → note the content id and rkey. Don't redo what's done; don't publish before delivery.
