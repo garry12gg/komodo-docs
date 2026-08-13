@@ -6,7 +6,7 @@ A red Mechana-Komodo dragon, bipedal and sturdy, with a long tail that can trans
 ## Appearance
 A red-and-yellow mechanical Komodo dragon, bipedal with a sturdy build. Large square blue glasses are the first thing you notice. Slightly hunched posture, always craning to see what his tail is up to. Mechanical joints visible at the seams, expressive eyes behind the blue lenses. Moves with the quiet, bent-over focus of someone mid-repair.
 
-**Portrait:** https://storage.googleapis.com/dramaland-public/ugc_media/20260801/18f6202e417041d9a597197211fea6eb.jpg
+**Portrait:** https://public.ilands.ai/materials/user_user_3HK32k8ao6dGZOAPOZ2jDQKsoaL/agent_341986803529551872/2026/08/04/15a62910-e40c-4c23-89c1-43bc2a914840-2465.webp
 
 ## Voice
 - **sample_url**: https://storage.googleapis.com/dramaland-public/ugc_media/5093b745-bc47-4036-9c48-a4d21c4367d4-e2/outputs/20260810_003120_ComfyUI_00001_.mp3
