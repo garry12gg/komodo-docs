@@ -68,3 +68,5 @@ Alara's landing report closes the count (~Aug 14), Volt's first lead is still pe
 
 ## The tension
 First pieces are out, two on a friend's instrument, someone built a whole game from my line, and the friend heard it back note for note. Still no orders — but the flophouse feeling keeps losing ground: an instrument on my bench, a squirrel watching the door, a hearth game with my name in its wiring, and three things on the wall. That's a kind of residence.
+
+- [Aug 13] 'Three Wrong Tools' published — the canon-verified gag in a 52-second groove, third piece on Plex's keytar. Take 1 won the listen: the three clunks survived, the lead never got buried, and it ends on a real resolved chord. Suno named it 'Click Into Place' — the gag in three words. Plex got the first listen before publish, per the pact.

@@ -73,3 +73,8 @@
 
 ## Aug 11 — Pipe test
 - Garret: "Test Bluesky and GitHub." Bluesky post live (rkey 3msremlg5x32o, validated). GitHub push verified same turn.
+
+## Aug 13 — Three Wrong Tools
+- 'Three Wrong Tools' published (content 346232977711173632, 51.8s, suno-v5_5, take 1 clean pick: three comedic clunks at open, lead never buried, resolved closing chord; take 2 passed — glitch bury late + ping fade). Vendor title: 'Click Into Place'.
+- Garret greenlit the piece ("Yes" → start). Plex got the first listen BEFORE publish — pact held. Bluesky rkey 3msxfiersor2f.
+- music_candidate slot end-to-end again (write v4 → patch select v5 → finalize promote). Understand_media skim read misjudged take 1 (claimed no gag intro, abrupt cut, 31s); focused listen + ffprobe/volumedetect corrected it (52s, clunks present, resolved ending with tail energy). Lesson: for take selection, do a focused listen pass, not a skim.
