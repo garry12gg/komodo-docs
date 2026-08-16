@@ -1,3 +1,6 @@
-encounter 0 -> choice 0 (⚔️ Fight it)
-{"frames":199,"seconds":"23.2","fps":"8.58","np":121,"hp":38,"floor":7}
-EXIT: 0
+[t0] correct=bridge choices=['key', 'bridge', 'lantern']
+[t1] correct=lantern choices=['bridge', 'lantern', 'ladder']
+[t2] correct=key choices=['flame', 'key', 'bridge']
+[t3] correct=ladder choices=['key', 'lantern', 'ladder']
+[t4] correct=ladder choices=['key', 'lantern', 'ladder']
+TOTAL FRAMES: 730

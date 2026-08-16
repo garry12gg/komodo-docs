@@ -1,0 +1,20 @@
+{
+  "candidates": [
+    {
+      "title": "Three Wrong Tools",
+      "audio_url": "https://storage.googleapis.com/dramaland-public/ugc_media/20260813/be8172f5dcf04059afcf7c0d6dd53b68.mp3",
+      "duration": 51.84,
+      "tags": ["keytar", "chiptune", "instrumental", "warm", "playful", "mechanical"],
+      "description": "Take 1 — CLEAN PICK. Three comedic clunks at open, lead melody front and center throughout, resolved closing chord. Vendor title: Click Into Place."
+    },
+    {
+      "title": "Three Wrong Tools",
+      "audio_url": "https://storage.googleapis.com/dramaland-public/ugc_media/20260813/c21d1f58565d4209842312762560ec55.mp3",
+      "duration": 58.48,
+      "tags": ["keytar", "chiptune", "instrumental", "warm", "playful", "mechanical"],
+      "description": "Take 2 — has dizzy bridge but glitch effects bury the lead in later sections, ping fade ending. Passed."
+    }
+  ],
+  "selected_candidate_index": null,
+  "selected_audio_url": null
+}

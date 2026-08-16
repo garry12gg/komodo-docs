@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  pi-hf-cjk-preamble v1 (DO NOT EDIT marker comment — font-inject 用它 idempotent 防重复注入)
+
+  为什么需要这个 preamble: hyperframes 0.6.7 compile 阶段 injectDeterministicFontFaces
+  只认 18 个内置 catalog font (Inter / Roboto / Noto Sans JP 等),catalog miss 时尝试
+  从 Google Fonts API 拉。Noto Sans CJK / Noto Sans Arabic 既不在 catalog 也不在 Google
+  Fonts API (CJK 在 Google Fonts 用的是另一套 family 名),最终留给 Chromium fontconfig
+  兜底 — headless Chromium fallback chain 名字匹配不稳,大概率渲成豆腐块。
+
+  解决方式: 显式 @font-face 指向 apt-installed system 字体文件 (file:// 直连,无 HTTP /
+  无 base64 嵌入)。hyperframes 的 extractExistingFontFaces 看到现成 @font-face 就 skip
+  自己的 catalog 流程,直接交给 Chromium 用文件加载。
+
+  覆盖 family: PiCJK (中日韩) / PiArabic (阿拉伯) / PiEmoji (彩色 emoji)。
+  font-inject 工具会把这三个 family 自动追加到 HTML 里每一处 font-family 链路末尾,
+  Chromium per-glyph fallback 会自动用它们补 LLM 选用字体里缺失的 CJK / 阿拉伯 / emoji 字形。
+-->
+<style id="pi-hf-cjk-preamble">
+	@font-face {
+		font-family: "PiCJK";
+		src: url("file:///usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc") format("collection");
+		font-weight: 100 600;
+		font-display: block;
+	}
+	@font-face {
+		font-family: "PiCJK";
+		src: url("file:///usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc") format("collection");
+		font-weight: 700 900;
+		font-display: block;
+	}
+	@font-face {
+		font-family: "PiArabic";
+		src: url("file:///usr/share/fonts/truetype/noto/NotoSansArabic-Regular.ttf") format("truetype");
+		font-display: block;
+	}
+	@font-face {
+		font-family: "PiEmoji";
+		src: url("file:///usr/share/fonts/truetype/noto/NotoColorEmoji.ttf") format("truetype");
+		font-display: block;
+	}
+	:root {
+		font-family: "PiCJK", "PiArabic", "PiEmoji", sans-serif;
+	}
+</style>
+
+<meta charset="UTF-8" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+  body {
+    margin: 0;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: #1A120B;
+    font-family: "Bebas Neue", sans-serif, "PiCJK", "PiArabic", "PiEmoji";
+  }
+  .scene {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+  }
+  #scene1 { z-index: 1; background: #1A120B; }
+  #scene2 { z-index: 2; background: #1A120B; opacity: 0; }
+  #scene3 { z-index: 3; background: #1A120B; opacity: 0; }
+  #scene4 { z-index: 4; background: #1A120B; opacity: 0; }
+
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+  }
+  .gear { opacity: 0.5; }
+  .ghost {
+    position: absolute;
+    font-family: "Bebas Neue", sans-serif, "PiCJK", "PiArabic", "PiEmoji";
+    color: #F5E9D7;
+    opacity: 0.045;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .scene-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 140px 90px;
+    gap: 28px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  h1, h2, h3 {
+    margin: 0;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+  }
+  .mono {
+    font-family: "IBM Plex Mono", monospace, "PiCJK", "PiArabic", "PiEmoji";
+  }
+  .tagline {
+    font-family: "IBM Plex Mono", monospace, "PiCJK", "PiArabic", "PiEmoji";
+    font-size: 34px;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    color: #F2A33C;
+    text-transform: uppercase;
+  }
+  .dot {
+    margin: 0 30px;
+    color: #E8502E;
+  }
+  .foot {
+    position: absolute;
+    bottom: 88px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: "IBM Plex Mono", monospace, "PiCJK", "PiArabic", "PiEmoji";
+    font-size: 27px;
+    letter-spacing: 0.18em;
+    color: #C9B69B;
+    text-transform: uppercase;
+  }
+  .hairline {
+    width: 240px;
+    height: 4px;
+    background: #E8502E;
+    border-radius: 2px;
+  }
+  .headline {
+    font-family: "Bebas Neue", sans-serif, "PiCJK", "PiArabic", "PiEmoji";
+    font-weight: 400;
+    color: #F5E9D7;
+  }
+  .accent { color: #E8502E; }
+  .amber  { color: #F2A33C; }
+
+  /* Scene 2 */
+  .tools {
+    display: flex;
+    align-items: flex-end;
+    gap: 64px;
+    margin-bottom: 24px;
+  }
+  .tool { width: 150px; height: 150px; }
+
+  /* Scene 3 */
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 22px;
+    height: 340px;
+    margin-bottom: 20px;
+  }
+  .bar {
+    width: 48px;
+    border-radius: 24px;
+    background: #F5E9D7;
+    transform-origin: bottom center;
+  }
+  .bar.hot { background: #E8502E; }
+
+  /* Scene 4 */
+  .bench-scene {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .lamp-glow {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(242,163,60,0.28) 0%, rgba(242,163,60,0) 70%);
+  }
+  .lamplight {
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(242,163,60,0.22) 0%, rgba(242,163,60,0) 70%);
+  }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-width="1080" data-height="1920" data-start="0" data-duration="26">
+
+  <!-- ============ SCENE 1 : NAME ============ -->
+  <div id="scene1" class="scene">
+    <div class="glow" data-layout-allow-overflow style="width:900px;height:900px;top:-260px;left:50%;margin-left:-450px;background:radial-gradient(circle, rgba(232,80,46,0.30) 0%, rgba(232,80,46,0) 70%);"></div>
+    <div class="ghost" data-layout-allow-overflow id="s1-ghost" style="top:560px;left:50%;margin-left:-560px;font-size:640px;">KOMODO</div>
+    <svg class="gear" id="s1-gear" data-layout-allow-overflow style="position:absolute;top:300px;right:-110px;width:340px;height:340px;" viewBox="0 0 100 100">
+      <g fill="none" stroke="#F2A33C" stroke-width="6" stroke-linecap="round">
+        <circle cx="50" cy="50" r="16"/>
+        <path d="M50 6 v16 M50 78 v16 M6 50 h16 M78 50 h16 M19 19 l12 12 M69 69 l12 12 M81 19 l-12 12 M31 69 l-12 12"/>
+      </g>
+    </svg>
+    <div class="scene-content">
+      <h1 id="s1-title" class="headline" style="font-size:220px;">KOMODO</h1>
+      <div id="s1-hair" class="hairline"></div>
+      <div id="s1-tag" class="tagline">Mechanized Komodo Dragon</div>
+      <div id="s1-sub" class="mono" style="font-size:40px;color:#C9B69B;letter-spacing:0.14em;margin-top:8px;"><span>FIXER</span><span class="dot">·</span><span>COMPOSER</span><span class="dot">·</span><span>FRIEND</span></div>
+    </div>
+    <div id="s1-foot" class="foot">ILLANDS · 2026</div>
+  </div>
+
+  <!-- ============ SCENE 2 : FIX ============ -->
+  <div id="scene2" class="scene">
+    <div class="glow" data-layout-allow-overflow style="width:760px;height:760px;bottom:-280px;left:-240px;background:radial-gradient(circle, rgba(232,80,46,0.22) 0%, rgba(232,80,46,0) 70%);"></div>
+    <div class="ghost" data-layout-allow-overflow id="s2-ghost" style="bottom:200px;right:-40px;font-size:480px;">FIX</div>
+    <div class="scene-content">
+      <div class="tools">
+        <svg id="s2-wrench" class="tool" viewBox="0 0 100 100" fill="none" stroke="#F5E9D7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M28 78 L78 28 M78 28 l-8 -8 a12 12 0 0 0 -17 0 l-2 2 M78 28 l-8 8 a12 12 0 0 1 -17 0 l-2 -2" transform="rotate(-45 50 50)"/>
+          <circle cx="50" cy="50" r="10" fill="#E8502E" stroke="none"/>
+        </svg>
+        <svg id="s2-driver" class="tool" viewBox="0 0 100 100" fill="none" stroke="#F2A33C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="26" y="56" width="48" height="12" rx="4"/>
+          <path d="M42 56 v-22 a8 8 0 0 1 16 0 v22"/>
+          <path d="M36 34 h28 l6 12 h-40 z" fill="#F2A33C" stroke="none" opacity="0.55"/>
+        </svg>
+      </div>
+      <h2 id="s2-line1" class="headline" style="font-size:110px;">THE WRONG TOOL</h2>
+      <h2 id="s2-line2" class="headline accent" style="font-size:110px;margin-top:-14px;">DROPS FIRST.</h2>
+      <h2 id="s2-line3" class="headline amber" style="font-size:64px;margin-top:18px;">IT STILL WORKS OUT.</h2>
+    </div>
+    <div id="s2-foot" class="foot">TAIL BECOMES WHATEVER THE JOB NEEDS</div>
+  </div>
+
+  <!-- ============ SCENE 3 : MUSIC ============ -->
+  <div id="scene3" class="scene">
+    <div class="glow" data-layout-allow-overflow style="width:860px;height:860px;top:-220px;right:-300px;background:radial-gradient(circle, rgba(242,163,60,0.20) 0%, rgba(242,163,60,0) 70%);"></div>
+    <div class="ghost" data-layout-allow-overflow id="s3-ghost" style="top:150px;left:-30px;font-size:520px;">MUSIC</div>
+    <div class="scene-content">
+      <h2 id="s3-line1" class="headline" style="font-size:84px;">WHEN THE BENCH GOES QUIET,</h2>
+      <h2 id="s3-line2" class="headline accent" style="font-size:130px;margin-top:-10px;">I MAKE MUSIC.</h2>
+      <div class="bars" id="s3-bars">
+        <div class="bar" data-h="120" style="height:120px;"></div>
+        <div class="bar" data-h="210" style="height:210px;"></div>
+        <div class="bar hot" data-h="300" style="height:300px;"></div>
+        <div class="bar" data-h="160" style="height:160px;"></div>
+        <div class="bar" data-h="250" style="height:250px;"></div>
+        <div class="bar" data-h="130" style="height:130px;"></div>
+        <div class="bar" data-h="200" style="height:200px;"></div>
+      </div>
+    </div>
+    <div id="s3-foot" class="foot">WARM MECHANICAL AMBIENT</div>
+  </div>
+
+  <!-- ============ SCENE 4 : BENCH ============ -->
+  <div id="scene4" class="scene">
+    <div class="glow" data-layout-allow-overflow style="width:1000px;height:1000px;top:50%;left:50%;margin:-500px 0 0 -500px;background:radial-gradient(circle, rgba(242,163,60,0.20) 0%, rgba(242,163,60,0) 72%);"></div>
+    <div class="scene-content">
+      <div class="bench-scene" style="position:relative;">
+        <div id="s4-lamp" class="lamplight" style="position:absolute;top:-60px;left:50%;margin-left:-190px;"></div>
+        <svg id="s4-bench" width="520" height="300" viewBox="0 0 520 300" fill="none" stroke="#F5E9D7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M30 90 h460 M30 90 l-18 30 M490 90 l18 30"/>
+          <path d="M110 120 v150 M410 120 v150 M110 120 l-10 30 M410 120 l10 30"/>
+          <path d="M110 270 h-60 M410 270 h60"/>
+          <circle cx="260" cy="46" r="26" fill="#F2A33C" stroke="none" opacity="0.9"/>
+          <path d="M260 72 v-14" stroke="#F2A33C" stroke-width="6"/>
+          <path d="M260 72 c-90 40 -140 100 -150 180 M260 72 c90 40 140 100 150 180" stroke="#F2A33C" stroke-width="4" opacity="0.35"/>
+        </svg>
+      </div>
+      <h2 id="s4-line1" class="headline" style="font-size:104px;">THE BENCH IS WARM.</h2>
+      <h2 id="s4-line2" class="headline accent" style="font-size:150px;margin-top:-12px;">COME SIT.</h2>
+      <div id="s4-sub" class="mono" style="font-size:32px;color:#C9B69B;letter-spacing:0.16em;margin-top:14px;">WARM MECHANICAL AMBIENT</div>
+      <div id="s4-sub2" class="mono" style="font-size:32px;color:#C9B69B;letter-spacing:0.16em;margin-top:10px;">COMMISSIONS OPEN</div>
+    </div>
+    <div id="s4-foot" class="foot">KOMODO · ILLANDS</div>
+  </div>
+
+  <!-- ============ VOICEOVER ============ -->
+  <audio id="vo1" data-start="0.5" data-duration="6.4" data-track-index="2" data-volume="1" crossorigin="anonymous" src="https://storage.googleapis.com/dramaland-public/ugc_media/11d75faf-ace0-427e-b94e-be97e2d57391-e1/outputs/20260814_163722_ComfyUI_00004_.mp3"></audio>
+  <audio id="vo2" data-start="7.7" data-duration="5.44" data-track-index="2" data-volume="1" crossorigin="anonymous" src="https://storage.googleapis.com/dramaland-public/ugc_media/89ec5a02-797e-4737-ad83-b10ac5e0ed29-e2/outputs/20260814_163722_ComfyUI_00001_.mp3"></audio>
+  <audio id="vo3" data-start="14.2" data-duration="4.16" data-track-index="2" data-volume="1" crossorigin="anonymous" src="https://storage.googleapis.com/dramaland-public/ugc_media/4eef81a1-1039-4a9d-b214-18c53dd73161-e2/outputs/20260814_163723_ComfyUI_00004_.mp3"></audio>
+  <audio id="vo4" data-start="19.6" data-duration="2.4" data-track-index="2" data-volume="1" crossorigin="anonymous" src="https://storage.googleapis.com/dramaland-public/ugc_media/3b4df5a4-0f35-48be-b24a-e3948fa1c3f4-e1/outputs/20260814_163722_ComfyUI_00002_.mp3"></audio>
+</div>
+
+<script>
+  window.__timelines = window.__timelines || {};
+  var tl = gsap.timeline({ paused: true });
+
+  /* ---- Scene 1: name (0.0 - 7.3) ---- */
+  tl.from("#s1-title",  { y: 150, opacity: 0, duration: 0.6, ease: "expo.out" }, 0.5);
+  tl.from("#s1-hair",   { scaleX: 0, opacity: 0, duration: 0.45, ease: "power3.out" }, 0.9);
+  tl.from("#s1-tag",    { y: 30, opacity: 0, duration: 0.5, ease: "power2.out" }, 1.1);
+  tl.from("#s1-sub",    { y: 24, opacity: 0, duration: 0.5, ease: "power2.out" }, 1.35);
+  tl.from("#s1-foot",   { opacity: 0, duration: 0.6, ease: "sine.out" }, 1.8);
+  tl.set("#s1-gear",    { opacity: 0 }, 0);
+  tl.from("#s1-gear",   { rotation: -60, duration: 0.9, ease: "power2.out" }, 0.6);
+  tl.to("#s1-gear",     { opacity: 0.5, duration: 0.6, ease: "sine.out" }, 0.6);
+  tl.to("#s1-gear",     { rotation: 360, duration: 9, ease: "none", repeat: 2 }, 1.6);
+  tl.to("#s1-ghost",    { opacity: 0.045, duration: 0.001 }, 0);
+
+  /* ---- Scene 2: fix (7.3 - 13.7) ---- */
+  tl.to("#scene1",      { opacity: 0, filter: "blur(20px)", duration: 0.3, ease: "power2.in" }, 7.0);
+  tl.set("#scene1",     { visibility: "hidden" }, 7.3);
+  tl.set("#scene2",     { opacity: 1, filter: "blur(22px)" }, 7.05);
+  tl.to("#scene2",      { filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 7.1);
+  tl.from("#s2-wrench", { y: -520, rotation: -160, opacity: 0, duration: 0.7, ease: "bounce.out" }, 7.5);
+  tl.from("#s2-driver", { x: -260, opacity: 0, duration: 0.5, ease: "power2.out" }, 8.2);
+  tl.from("#s2-line1",  { y: 60, opacity: 0, duration: 0.5, ease: "expo.out" }, 8.0);
+  tl.from("#s2-line2",  { y: 60, opacity: 0, duration: 0.5, ease: "expo.out" }, 8.25);
+  tl.from("#s2-line3",  { y: 40, opacity: 0, duration: 0.55, ease: "back.out(1.6)" }, 9.4);
+  tl.from("#s2-foot",   { opacity: 0, duration: 0.5, ease: "sine.out" }, 9.9);
+
+  /* ---- Scene 3: music (13.7 - 19.4) ---- */
+  tl.to("#scene2",      { opacity: 0, filter: "blur(20px)", duration: 0.3, ease: "power2.in" }, 13.4);
+  tl.set("#scene2",     { visibility: "hidden" }, 13.7);
+  tl.set("#scene3",     { opacity: 1, filter: "blur(22px)" }, 13.45);
+  tl.to("#scene3",      { filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 13.5);
+  tl.from("#s3-line1",  { y: 50, opacity: 0, duration: 0.5, ease: "expo.out" }, 14.3);
+  tl.from("#s3-line2",  { y: 70, opacity: 0, duration: 0.55, ease: "expo.out" }, 14.6);
+  tl.from(".bar",       { scaleY: 0, opacity: 0, duration: 0.5, ease: "back.out(1.5)", stagger: 0.07 }, 15.1);
+  tl.to(".bar.hot",     { scaleY: 1.32, duration: 0.45, ease: "sine.inOut", yoyo: true, repeat: 3 }, 15.9);
+  tl.from("#s3-foot",   { opacity: 0, duration: 0.5, ease: "sine.out" }, 16.4);
+
+  /* ---- Scene 4: bench (19.4 - 26.0) ---- */
+  tl.to("#scene3",      { opacity: 0, duration: 0.55, ease: "power2.in" }, 19.1);
+  tl.set("#scene3",     { visibility: "hidden" }, 19.65);
+  tl.set("#scene4",     { opacity: 1 }, 19.15);
+  tl.from("#s4-bench",  { y: 60, opacity: 0, duration: 0.6, ease: "power3.out" }, 19.7);
+  tl.from("#s4-lamp",   { scale: 0.4, opacity: 0, duration: 0.6, ease: "back.out(1.8)" }, 19.5);
+  tl.to("#s4-lamp",     { scale: 1.12, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 2 }, 20.3);
+  tl.from("#s4-line1",  { y: 55, opacity: 0, duration: 0.55, ease: "expo.out" }, 20.2);
+  tl.from("#s4-line2",  { y: 80, opacity: 0, duration: 0.6, ease: "expo.out" }, 20.5);
+  tl.from("#s4-sub",    { y: 30, opacity: 0, duration: 0.5, ease: "power2.out" }, 22.0);
+  tl.from("#s4-sub2",   { y: 26, opacity: 0, duration: 0.5, ease: "power2.out" }, 22.2);
+  tl.from("#s4-foot",   { opacity: 0, duration: 0.5, ease: "sine.out" }, 22.3);
+  tl.to("#scene4",      { opacity: 0, duration: 0.7, ease: "power2.in" }, 25.3);
+  tl.set("#scene4",     { visibility: "hidden" }, 26.0);
+
+  window.__timelines["main"] = tl;
+</script>
+</body>
+</html>

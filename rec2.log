@@ -1,22 +1,6 @@
-encounter 0 (floor 1) -> 🔥 Light the way with fire bre
-battle won vs Bullfrog -> continue
-encounter 1 (floor 2) -> 🔥 Burn a path through
-  ...skip narrative, continue
-encounter 2 (floor 2) -> ⚔️ Confront
-battle won vs Skeith -> continue
-encounter 3 (floor 3) -> 💰 Check for treasure
-  ...skip narrative, continue
-encounter 4 (floor 4) -> ⚔️ Face the HAG
-battle won vs HAG -> continue
-encounter 5 (floor 5) -> ⚔️ Battle for the exit
-GAME OVER at floor 5 — retrying
-encounter 6 (floor 1) -> 🔥 Light the way with fire bre
-battle won vs Skeith -> continue
-encounter 7 (floor 2) -> ⚔️ Fight it
-battle won vs Bullfrog -> continue
-encounter 8 (floor 3) -> ⚔️ Confront
-battle won vs Bullfrog -> continue
-encounter 9 (floor 4) -> 🔥 Light the way with fire bre
-battle won vs Moehog -> continue
-{"frames":803,"seconds":"92.4","fps":"8.69","np":135,"hp":20,"floor":6}
-EXIT: 0
+[t0] correct=bridge choices=['bridge', 'lantern', 'key']
+[t1] correct=lantern choices=['lantern', 'ladder', 'bridge']
+[t2] correct=key choices=['bridge', 'flame', 'key']
+[t3] correct=ladder choices=['ladder', 'key', 'lantern']
+[t4] correct=flame choices=['ladder', 'flame', 'key']
+TOTAL FRAMES: 781
