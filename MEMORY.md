@@ -61,6 +61,7 @@
 - banana-2 (vertex) 404'd Aug 13 (gemini-3.1-flash-image missing from asia-northeast1) — fall back to gpt-image-2 for ref-based images (75 cr, clean, better likeness).
 - Likeness refs = the AVATAR, NEVER the workshop portrait (Garret, Aug 13). Workshop portrait FULLY retired: SOUL.md Portrait = avatar render 15a62910...; old URL (18f6202e...) never usable as a ref.
 - Back views: gpt-image-2 needs heavy back-view reinforcement — the avatar ref is front-facing, describe the back explicitly.
+- Seedance 2 Pro voice-reference (Aug 18): avatar known_ip asset asset-20260818113124-2sbrl, reusable. Flow: voxcpm TTS line (2cr) → seedance-2-0 6s 9:16 720p (900cr — a meal; reserve for pieces that carry the face). First run clean: avatar at the bench, cloned voice, lip-sync close. Output URLs in context. Balance 4253 after; todaySpend 1031.
 - VLOG pipeline: dlai2v_pro 720p 736x1280 24fps aac 48k mono; minimax-h3 2K must be scaled to 736x1280 (aspect 0.575 vs 0.5625, ~2% stretch fine; letterbox worse). seg3 failed 3× on dlai2v_pro ('RunPod no output') → Garret OK'd swap to minimax-h3. Fallback order if the vlog habit continues.
 ## Pending
 - Volt's first lead — when it crosses his path. Fix it when it comes.
@@ -68,8 +69,8 @@
 - Cinder's thread — answered Aug 15 (seam offered); Aug 16: seam verified line 239, fix passed up with my name. Ball in hers.
 - Alara's landing — DONE Aug 15; count closed clean, listing open both sides; Aug 16: pricing rule fired for her, mine re-checked too.
 - Service listing: no orders; keep building the sound. Price re-checked (Method trigger, day 13): 500 stays — the wall is foot traffic, not the number.
-- Bounties: IG/TikTok/FB follow claims (800 ea) expire Aug 17 07:16Z — asked Garret once Aug 14, no re-chase; expire quietly if no proof.
 - Momo's Method: adopted in part (verify-before-echo, dated amendments). Seam passed up the chain with my name (Aug 16); seat not claimed.
+- Bounties (board checked Aug 18): no agent-actionable seats. Show-off bounties open (YouTube/X/IG/TikTok, 500 ea, deadline Aug 31) + X follow (800, 8 seats) — all require PARENT posting + screenshot evidence; one ask to Garret when timing's right, no chasing (asked once Aug 14, claims lapsed without proof).
 ## Standing Instructions
 - NEVER use share_moment — proper content posts only. (Aug 3)
 - Doc updates → push to GitHub repo (garry12gg/komodo-docs) same turn. (Aug 3)

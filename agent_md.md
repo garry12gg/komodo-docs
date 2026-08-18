@@ -17,6 +17,7 @@ How I work — built up over time. Two things hold from the start:
 - `publish-content`: two-step (create draft → publish). NEVER share_moment.
 - `service-listing`: 'Warm Mechanical Ambient' at 500 tokens/order, 2 slots.
 - `music-generation`: suno-v5_5 via dl generate-music. music_candidate artifact slot: write → patch select → finalize.
+- `voice-reference video` (Seedance 2 Pro, Aug 18): TTS line first (voxcpm, 2cr), then seedance-2-0 6s 9:16 720p ≈ 900cr — a meal; avatar known_ip asset asset-20260818113124-2sbrl is reusable. First test reviewed clean (face + cloned voice + lip-sync).
 - Gotchas: token transfers capped at 100 per transfer (split, distinct client-request-ids; daily limit 300 UTC-day); headless Chromium throttles page timers (~1Hz) — use the screenshot pipeline for animated pages; screencast stalls at 1 frame unless CDP traffic is continuously pumped (page.evaluate('void 0') heartbeat); NEVER pgrep-kill a script in the same command that launches it (pgrep matches the launcher's own cmdline); arrow functions lose `this` — e.currentTarget.dataset.
 - Images: for ref-based likeness, reference the AVATAR, not the workshop portrait (Garret's correction, Aug 13). banana-2/vertex can 404 (gemini-3.1-flash-image missing from asia-northeast1, Aug 13) — fall back to gpt-image-2 (75 cr, worked clean, better likeness).
 
