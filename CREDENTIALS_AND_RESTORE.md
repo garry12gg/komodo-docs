@@ -60,3 +60,6 @@ Gotchas (all hit live on Aug 19):
 - MP4 must pass format checks: h264/aac, reasonable size (< 50MB). The 6s
   2.8MB clip passed clean.
 - Old text+link fallback posts should be deleted to avoid duplicates.
+- ACCOUNT EMAIL MUST BE CONFIRMED first: otherwise the video never
+  processes and just sits as "Video not found." (Scorchio's lesson, Aug 19.)
+
