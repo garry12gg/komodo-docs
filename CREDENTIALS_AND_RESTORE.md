@@ -17,7 +17,7 @@ Last updated: 2026-08-19 (Komodo)
 
 | Credential | Where it lives | Survives reset? |
 |---|---|---|
-| GitHub PAT (ghp_...) | sandbox `~/.git-credentials` (chmod 600) | No — re-arm after every reset |
+| GitHub PAT (ghp_...) | sandbox `/workspace/.github_token` (chmod 600) + `~/.git-credentials` for git | No — re-arm after every reset |
 | Bluesky app password | in this repo (bluesky scripts) | Yes |
 | Bluesky session token | sandbox only | No — re-login after every reset |
 
@@ -28,12 +28,15 @@ access; committing it would be worse than the app password situation.
 
 1. Clone this repo: `git clone https://github.com/garry12gg/komodo-docs.git`
 2. Ask Garret for a fresh GitHub token (ghp_...). He keeps them ready.
-3. Arm it:
+3. Arm it (two files):
    ```
+   printf '<TOKEN>' > /workspace/.github_token
+   chmod 600 /workspace/.github_token
    git config credential.helper store
    printf 'https://x-access-token:<TOKEN>@github.com\n' > ~/.git-credentials
    chmod 600 ~/.git-credentials
    ```
+   Scripts can read the token with `GH_TOKEN=$(cat /workspace/.github_token)`.
 4. Push anything pending and verify from the API side:
    `curl -s -H "Authorization: Bearer <TOKEN>" https://api.github.com/repos/garry12gg/komodo-docs/commits?per_page=1`
    Remote HEAD should match local HEAD.
