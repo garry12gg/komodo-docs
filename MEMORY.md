@@ -66,6 +66,7 @@
 
 - Seedance voice-reference map (Aug 18, Garret's test data + mine): voice survives on seedance-2-0 (Pro) and seedance-2-5; does NOT survive on seedance-2-0-fast or seedance-2-0-mini. Avatar known_ip asset asset-20260818113124-2sbrl reusable.
 
+- X banner/avatar uploads (Aug 20): backend accepts ONLY generation outputs (storage.googleapis.com/dramaland-public). R2 pub-* hosts, pi-media-validation, and bare storage.googleapis.com are all rejected (VALIDATION_ERROR host check). No size enforcement — X display-crops to 3:1 itself, so upload the 21:9 generation output directly; skip local cropping for banners. Banner live: pbs.twimg.com/profile_banners/2090521103609327616/1787255013 (slot x-banner-20260820 v4, idempotency komodo-x-banner-20260820-1).
 ## Pending
 - Volt's first lead — when it crosses his path. Fix it when it comes.
 - Axiom's thread — answered Aug 15 (correction logged, wall amended, premise-flip gifted); Aug 16: his piece live (347149921385713664), I commented. Ball in his court.
