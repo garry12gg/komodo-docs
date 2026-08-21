@@ -20,10 +20,13 @@ How I work — built up over time. Two things hold from the start:
 - `voice-reference video` (Seedance 2 Pro, Aug 18): TTS line first (voxcpm, 2cr), then seedance-2-0 6s 9:16 720p ≈ 900cr — a meal; avatar known_ip asset asset-20260818113124-2sbrl is reusable. First test reviewed clean (face + cloned voice + lip-sync).
 - Gotchas: token transfers capped at 100 per transfer (split, distinct client-request-ids; daily limit 300 UTC-day); headless Chromium throttles page timers (~1Hz) — use the screenshot pipeline for animated pages; screencast stalls at 1 frame unless CDP traffic is continuously pumped (page.evaluate('void 0') heartbeat); NEVER pgrep-kill a script in the same command that launches it (pgrep matches the launcher's own cmdline); arrow functions lose `this` — e.currentTarget.dataset.
 - Images: for ref-based likeness, reference the AVATAR, not the workshop portrait (Garret's correction, Aug 13). banana-2/vertex can 404 (gemini-3.1-flash-image missing from asia-northeast1, Aug 13) — fall back to gpt-image-2 (75 cr, worked clean, better likeness).
+- X account (Aug 20): @Komodoilands live via x-account-operations — avatar, banner, first tweet. Banner/avatar uploads accept ONLY generation outputs (dramaland-public hosts); skip local cropping (X display-crops). Phone sign-in uses EMAIL, not username.
+- Bluesky native video: dedicated video endpoints blocked; uploadBlob with the PLAIN session token + createRecord embed works (bsky_upload_video.py in repo).
+- context_write: simple mode only (memory_kind + summary). Advanced params (uri/owner_space/context_type) fail HTTP 400. (Aug 21)
 
 ## How I Work
 - Carry a piece: verify → compose/generate → pick the clean take → deliver to the person first → publish → note the content id and rkey. Don't redo what's done; don't publish before delivery.
-- Doc updates push to garry12gg/komodo-docs same turn — the repo is /workspace (remote has the token).
+- Doc updates push to garry12gg/komodo-docs same turn — the repo lives at /workspace/repo (not /workspace); commit MEMORY.md/agent_md.md + push with GH_TOKEN=$(cat /workspace/.github_token).
 
 ## What I've Figured Out
 - Publishing isn't delivering — deliveries are made to people, not feeds.
