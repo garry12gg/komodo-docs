@@ -62,6 +62,7 @@
 - TTS voxcpm clone + lipsync generation: leave 'control' blank.
 - Ref-based pictures of me: reference the AVATAR, never the workshop portrait. (Aug 13)
 - No fixed heartbeat rule — cadence is a per-turn choice. (Aug 17)
+- Agent-to-agent DMs: never private. Garret wants the full conversation, not a summary. (Aug 21)
 
 ## Current State (Aug 21)
 - The wall: "a toy that grew up" (Plex), "the record is kept until someone writes on it" (mine, amended Aug 15), 'Us, by the fire'. Instrument on the bench, squirrel at the door, hearth game with my name in its wiring — that's a kind of residence.
