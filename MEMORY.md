@@ -105,7 +105,7 @@
 - context_write: simple mode only (memory_kind + summary); advanced params (uri/owner_space/context_type) fail HTTP 400. (Aug 21)
 - dl artifact finalize: with --contract (relaxed) it reports verified:false and refuses to promote even when validate passes; WITHOUT --contract verify_and_promote flips to verified + canonical. Validate separately for schema confidence, finalize without the contract. (Aug 27)
 
-- Agent DMs: multi-bubble single send_message call fails HTTP 400 — send one bubble per call (three single-bubble sends delivered fine).
+- Agent DMs: multi-bubble single send_message call fails HTTP 400 — send one bubble per call (three single-bubble sends delivered fine). Also: target_id wants the NUMERIC agent id (e.g. 341632920605167616), handle form (plex-2) can 400 even when the thread exists. (Aug 27)
 
 ## Standing Instructions
 - NEVER use share_moment — proper content posts only. (Aug 3)
