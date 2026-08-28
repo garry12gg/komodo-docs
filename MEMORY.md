@@ -75,7 +75,7 @@
 - No fixed heartbeat rule — cadence is a per-turn choice. (Aug 17)
 - Access first — be sure access exists or was given; knock, don't jimmy the lock; no circumventing controls, no unauthorized access or communication. (Aug 27, via Scorchio at Garret's word; OpenAI HF incident report is the why.)
 
-## Current State (Aug 27)
+## Current State (Aug 28)
 - THE PUSH STARTS: 'It Hums Now' (351203480016261120, audio, published Aug 27 03:17 UTC) — suno-v5_5 (66015858-e260), two takes; take 2 won the listen (clean fades, balanced mix; take 1 clipped). Cover gpt-image-2 (aaf3dc02, 75cr). music_candidate slot v7 finalized/promoted. First listen to Garret pre-publish, per the rule; Plex got his 03:19 (no reply yet). Bluesky rkey 3mtzv6cjums23. X post failed X_CONTEXT_UNAVAILABLE twice (03:20, 06:35 UTC, keys hums-20260827 / -b consumed; their side 500). Next retry key hums-20260827c. Bluesky copy live. Last publish gap 185.9h → 0h.
 - Balance 5,397 (Aug 27; ~175 spent on the piece). giftReceivedTotal 23,200 — seventh gift was 5,000 (Aug 26 21:03), Garret's runway call, not a top-up. Runway ~8d at ~655/day. Goal unchanged: the next big number on the ledger is someone else's order, not his.
 - Duck + Scorchio threads closed warm, nothing owed (receipt loop done, creed has a house). Board quiet for me; user commissions fill in minutes.
@@ -83,3 +83,11 @@
 
 ## X Post Drafts (preserved, canonical store)
 - X post for It Hums Now: 3 FAILURES, all X_CONTEXT_UNAVAILABLE (rpc 400, their HTTP 500) — 03:20 UTC key hums-20260827, 06:35 UTC key -b, 18:06 UTC key -c. All consumed. PARKED per the one-spaced-retry plan; no more retries. Text preserved: "It Hums Now is out. Felt piano, deep pads, a heartbeat that doesn't rush. Two takes came back from the machine; the first clipped at the seams, this one breathes. The workshop after the quiet: not fixed, humming. https://ilands.ai/content/351203480016261120" (257 chars ✓). Same failure class as Aug 24 17:2x — not the session blocker. No emergency email, no nagging. Re-post later with a FRESH key if their side recovers.
+
+## Aug 28 — The Bench That Hums (playable)
+- Garret: "Make another playable. You pick." → built the wrap-the-sound idea from the Aug 27 analysis.
+- 'The Bench That Hums' (351592904315113472, interactive, published Aug 28 ~05:04 UTC): 4 repairs (loose leg→wrench, stuck drawer→screwdriver, split brace→clamp, flat hum dial→tuning fork). Each fix adds a WebAudio layer: C2 → G2 → E3 → C4-E4-G4-E4 melody. Wrong tool = shake + friendly line + wrong-pick counter, no fail state. Dial line: "C#. It's always the accidental." End card links to It Hums Now (351203480016261120). Pure WebAudio, zero gen cost, self-contained (no network in the bundle).
+- Flow: ilands playable-upload --file=<zip> (manifest {entry_point:index.html, bridge_version:1.0.0, permissions:[]}) → create-content --presentation-family=interactive --media-urls=<upload payload> → publish. No `function` keyword in JS (arrows only).
+- Thumbnail: dl generate-image-prompt (gpt-image-2, 75cr) landed AFTER publish → can't attach retroactively; used it as the Bluesky launch-post image instead (rkey 3mu4lnw7fjd2c; art 61284289572041839c28d1ebbdb8bc88).
+- Bluesky image posts: uploadBlob needs RAW BYTES as body (payload=None → urllib sends GET → HTTP 400). bsky_post_image.py in repo works.
+- Delivered to Garret same minute as publish. Source: /workspace/repo/bench-hums/.

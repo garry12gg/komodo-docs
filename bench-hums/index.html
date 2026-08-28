@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>The Bench That Hums</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #120d0a;
+    display: flex; align-items: center; justify-content: center;
+    user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  }
+  #stage {
+    position: relative;
+    width: 100%; height: 100vh; height: 100dvh;
+    max-width: 520px;
+    background: radial-gradient(120% 90% at 50% 0%, #2b2118 0%, #1a1410 60%, #120d0a 100%);
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0,0,0,.6);
+  }
+  #stage::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,200,120,.10) 1.5px, transparent 2px);
+    background-size: 30px 30px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; z-index: 20;
+  }
+  #lights { display: flex; gap: 6px; }
+  .light {
+    width: 11px; height: 11px; border-radius: 50%;
+    border: 1px solid #6b5436; background: transparent;
+    transition: all .5s;
+  }
+  .light.on {
+    background: #ffb454;
+    border-color: #ffb454;
+    box-shadow: 0 0 10px 2px rgba(255,180,84,.5);
+  }
+  #wrongbox {
+    background: rgba(0,0,0,.35); border-radius: 12px;
+    padding: 6px 12px; font-size: 12px; font-weight: 700;
+    color: #d9c29a; letter-spacing: .5px;
+  }
+
+  /* ---------- Speech ---------- */
+  #speech {
+    position: absolute; top: 54px; left: 12px; right: 12px;
+    min-height: 74px; z-index: 8;
+    background: rgba(38,27,18,.92);
+    border: 1px solid #4a3822; border-radius: 14px;
+    padding: 12px 14px 12px 50px;
+    font-size: 14.5px; line-height: 1.4; color: #f0d9b0;
+    display: flex; align-items: center;
+  }
+  #avatar { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 28px; }
+
+  /* ---------- Scene ---------- */
+  #scene { position: absolute; inset: 0; z-index: 2; }
+  #window {
+    position: absolute; top: 20px; right: 22px;
+    width: 74px; height: 74px; border-radius: 50%;
+    background: #0e1518;
+    border: 3px solid #4a3822;
+    box-shadow: inset 0 0 18px rgba(0,0,0,.8);
+  }
+  #moon {
+    position: absolute; top: 14px; left: 20px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #f5e6c8; opacity: .85;
+    box-shadow: 0 0 18px 4px rgba(245,230,200,.25);
+  }
+
+  /* bench */
+  #bench {
+    position: absolute;
+    left: 50%; bottom: 128px;
+    transform: translateX(-50%);
+    width: 300px; height: 152px;
+    transition: box-shadow 1.5s;
+  }
+  #bench.glow {
+    box-shadow: 0 0 80px 30px rgba(255,180,84,.16);
+  }
+  .top {
+    position: absolute; left: 0; top: 0;
+    width: 300px; height: 24px;
+    background: linear-gradient(#a06a35, #8a5a2a);
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,.45);
+  }
+  .top::after {
+    content: ""; position: absolute; left: 8px; right: 8px; bottom: 3px;
+    height: 3px; border-radius: 2px;
+    background: rgba(0,0,0,.22);
+  }
+  .leg {
+    position: absolute; top: 24px;
+    width: 20px; height: 100px;
+    background: linear-gradient(#6f4520, #593616);
+    border-radius: 3px;
+    box-shadow: 0 4px 8px rgba(0,0,0,.35);
+  }
+  .leg.left { left: 18px; transform-origin: top center; }
+  .leg.right { right: 18px; }
+  .leg.left.broken { animation: wobble 1.5s ease-in-out infinite; }
+  .leg.left.fixed { transform: rotate(0deg); }
+  .drawer {
+    position: absolute; left: 102px; top: 34px;
+    width: 96px; height: 46px;
+    background: linear-gradient(#7d4f26, #6a401f);
+    border-radius: 4px;
+    box-shadow: 0 3px 6px rgba(0,0,0,.3);
+    transition: box-shadow .6s;
+  }
+  .drawer::after {
+    content: ""; position: absolute; right: 8px; top: 50%;
+    transform: translateY(-50%);
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #2e241a; border: 2px solid #5a4426;
+    transition: all .6s;
+  }
+  .drawer.broken { animation: ajar 2.2s ease-in-out infinite; }
+  .drawer.fixed { box-shadow: 0 3px 6px rgba(0,0,0,.3), 0 0 12px rgba(255,180,84,.25); }
+  .drawer.fixed::after { border-color: #ffb454; box-shadow: 0 0 8px rgba(255,180,84,.6); }
+  .brace {
+    position: absolute; left: 50px; top: 96px;
+    width: 200px; height: 10px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #5d3c1c 0 43%, #171210 43% 57%, #5d3c1c 57% 100%);
+    box-shadow: 0 2px 4px rgba(0,0,0,.3);
+    transition: background .6s;
+  }
+  .brace.fixed { background: linear-gradient(#5d3c1c, #4a2f16); box-shadow: 0 0 12px rgba(255,180,84,.2); }
+  .dial {
+    position: absolute; left: 244px; top: 2px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #2e241a; border: 3px solid #6b5436;
+    transition: border-color .6s, box-shadow .6s;
+  }
+  .dial::after {
+    content: ""; position: absolute; left: 50%; top: 3px;
+    width: 3px; height: 9px; border-radius: 2px;
+    background: #ffb454;
+    transform-origin: 50% 100%;
+    transition: transform .8s cubic-bezier(.34,1.56,.64,1);
+  }
+  .dial.broken::after { transform: translateX(-50%) rotate(200deg); }
+  .dial.fixed::after { transform: translateX(-50%) rotate(90deg); }
+  .dial.fixed { border-color: #ffb454; box-shadow: 0 0 10px rgba(255,180,84,.5); }
+
+  .lamp { position: absolute; left: 50%; top: -58px; transform: translateX(-50%); z-index: 3; }
+  .lamp .stem { width: 8px; height: 34px; margin: 0 auto; background: #4a3822; border-radius: 2px; }
+  .lamp .shade {
+    width: 46px; height: 20px; margin: 0 auto;
+    background: linear-gradient(#6b5436, #4a3822);
+    border-radius: 6px 6px 2px 2px;
+    box-shadow: 0 3px 6px rgba(0,0,0,.4);
+    transition: all 1s;
+  }
+  .lamp.lit .shade {
+    background: linear-gradient(#ffb454, #e08a2e);
+    box-shadow: 0 0 26px 8px rgba(255,180,84,.55);
+  }
+
+  .marker {
+    position: absolute;
+    width: 13px; height: 13px; border-radius: 50%;
+    background: #ffb454;
+    box-shadow: 0 0 12px 4px rgba(255,180,84,.5);
+    animation: pulse 1.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  #leg .marker { left: 2px; top: 36px; }
+  #drawer .marker { left: -4px; top: 16px; }
+  #brace .marker { left: 94px; top: -6px; }
+  #dial .marker { left: -4px; top: -8px; }
+  .fixed .marker { display: none; }
+
+  /* ---------- Tray ---------- */
+  #traylabel {
+    position: absolute; bottom: 88px; right: 18px;
+    font-size: 10px; letter-spacing: 2px; color: #7a6446;
+    text-transform: uppercase; z-index: 6;
+  }
+  #tray {
+    position: absolute; bottom: 12px; left: 12px; right: 12px;
+    display: flex; justify-content: space-around; gap: 10px;
+    z-index: 9;
+  }
+  .tool {
+    flex: 1; max-width: 74px; height: 62px;
+    border-radius: 16px;
+    background: #2a2016;
+    border: 2px solid #5a4426;
+    color: #f0d9b0;
+    font-size: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .1s, border-color .2s, opacity .3s;
+  }
+  .tool:hover { border-color: #ffb454; }
+  .tool:active { transform: scale(.92); }
+  .tool.used { opacity: .35; border-color: #3a2c1a; pointer-events: none; }
+
+  /* ---------- Title ---------- */
+  #title {
+    position: absolute; inset: 0; z-index: 40;
+    background: radial-gradient(120% 100% at 50% 40%, rgba(30,20,12,.96), rgba(14,9,6,.98));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 30px;
+  }
+  #title h1 {
+    font-size: 38px; letter-spacing: 5px; line-height: 1.15;
+    color: #ffb454;
+    text-shadow: 0 0 26px rgba(255,180,84,.4);
+    font-weight: 900;
+  }
+  #title .sub {
+    margin-top: 18px; font-size: 15px; line-height: 1.6;
+    color: #d9c29a;
+  }
+  #title .trad {
+    margin-top: 14px; font-size: 12px; letter-spacing: 1.5px;
+    color: #8a7355; text-transform: uppercase;
+  }
+  #begin {
+    margin-top: 30px; padding: 13px 30px;
+    border: 2px solid #ffb454; border-radius: 999px;
+    color: #ffb454; font-weight: 800; font-size: 15px; letter-spacing: 2px;
+    animation: breathe 2s ease-in-out infinite;
+  }
+
+  /* ---------- End ---------- */
+  #end {
+    position: absolute; inset: 0; z-index: 35;
+    background: rgba(12,8,5,.9);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 30px;
+  }
+  #end.show { display: flex; }
+  #end h2 {
+    font-size: 34px; letter-spacing: 3px; color: #ffb454;
+    text-shadow: 0 0 30px rgba(255,180,84,.5);
+    font-weight: 900;
+  }
+  #end .endline {
+    margin-top: 14px; font-size: 14px; line-height: 1.7; color: #d9c29a;
+  }
+  #end a.full {
+    margin-top: 22px; padding: 11px 20px;
+    border: 2px solid #ffb454; border-radius: 999px;
+    color: #ffb454; text-decoration: none; font-weight: 700; font-size: 14px;
+  }
+  #again {
+    margin-top: 14px; padding: 12px 26px;
+    background: #ffb454; color: #221505;
+    border: none; border-radius: 999px;
+    font-weight: 800; font-size: 14px; letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.35); opacity: .7; }
+  }
+  @keyframes wobble {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(2.6deg); }
+  }
+  @keyframes ajar {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(2px); }
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .55; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+  }
+  .shaking { animation: shake .4s ease; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="title">
+    <h1>THE BENCH<br>THAT HUMS</h1>
+    <p class="sub">Four repairs. Each one adds a layer of music.<br>Fix all four and it hums.</p>
+    <p class="trad">wrong tool first is tradition</p>
+    <div id="begin">tap to begin</div>
+  </div>
+
+  <div id="hud">
+    <div id="lights">
+      <div class="light"></div><div class="light"></div>
+      <div class="light"></div><div class="light"></div>
+    </div>
+    <div id="wrongbox">wrong picks: 0</div>
+  </div>
+
+  <div id="speech"><span id="avatar">🦎</span><p id="line"></p></div>
+
+  <div id="scene">
+    <div id="window"><div id="moon"></div></div>
+    <div id="bench">
+      <div class="lamp" id="lamp"><div class="shade"></div><div class="stem"></div></div>
+      <div class="top"></div>
+      <div class="leg left broken" id="leg"><span class="marker"></span></div>
+      <div class="leg right"></div>
+      <div class="drawer" id="drawer"><span class="marker"></span></div>
+      <div class="brace" id="brace"><span class="marker"></span></div>
+      <div class="dial broken" id="dial"><span class="marker"></span></div>
+    </div>
+  </div>
+
+  <div id="traylabel">tail tray</div>
+  <div id="tray">
+    <button class="tool" data-tool="wrench" aria-label="wrench">🔧</button>
+    <button class="tool" data-tool="screwdriver" aria-label="screwdriver">🪛</button>
+    <button class="tool" data-tool="clamp" aria-label="clamp">🗜️</button>
+    <button class="tool" data-tool="fork" aria-label="tuning fork">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#f0d9b0" stroke-width="2" stroke-linecap="round">
+        <path d="M7 2v7a5 5 0 0 0 10 0V2"/>
+        <path d="M12 14v8"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="end">
+    <h2>It hums now.</h2>
+    <p class="endline">Wrong tool first, right tool second.<br>That's the whole trick.<br>(No fail state. Just whatever's needed.)</p>
+    <a class="full" href="https://ilands.ai/content/351203480016261120" target="_blank">hear the full hum →</a>
+    <button id="again">fix it again</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const PARTS = [
+    { id: 'leg', tool: 'wrench', hint: "The left leg's wobbly. Squeeze-and-turn job.", wrong: "A clamp just holds the wobble still while it wobbles. Keep it turning.", fixed: "Leg's tight. That's the first layer." },
+    { id: 'drawer', tool: 'screwdriver', hint: "Drawer's seized. Something's holding the latch shut.", wrong: "Turning won't pry it. You need to persuade the latch.", fixed: "Drawer's free. Second layer." },
+    { id: 'brace', tool: 'clamp', hint: "The cross-brace split. It needs squeezing together while it bonds.", wrong: "There's no screw in a split. Squeeze it.", fixed: "Brace's whole again. Third layer." },
+    { id: 'dial', tool: 'fork', hint: "The hum dial went flat. The fork remembers the pitch.", wrong: "You can't tune by eye. (C#. It's always the accidental.)", fixed: "C#. Always check the accidental. Fourth layer. Now it hums." }
+  ];
+
+  const stage = $('stage'), title = $('title'), speechLine = $('line'),
+        tray = $('tray'), endCard = $('end'), wrongbox = $('wrongbox'),
+        bench = $('bench'), lamp = $('lamp'), lights = [...document.querySelectorAll('.light')];
+
+  let started = false, partIndex = 0, wrongPicks = 0, busy = false;
+  const usedTools = {};
+
+  /* ---------------- audio ---------------- */
+  const audio = (() => {
+    let ctx = null, master = null, meloInt = null, pulseInt = null;
+    const layers = [];
+    const start = () => {
+      if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0.5;
+      master.connect(ctx.destination);
+      const o = ctx.createOscillator();
+      o.type = 'sine'; o.frequency.value = 32.7;
+      const g = ctx.createGain(); g.gain.value = 0.04;
+      o.connect(g); g.connect(master);
+      o.start();
+    };
+    const tone = (freq, type, dur, vol, attack, when) => {
+      if (!ctx) return;
+      const t = ctx.currentTime + (when || 0);
+      const o = ctx.createOscillator(); o.type = type || 'sine'; o.frequency.value = freq;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol || 0.12, t + (attack || 0.8));
+      g.gain.setValueAtTime(vol || 0.12, t + (attack || 0.8) + dur * 0.6);
+      g.gain.linearRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + dur + 0.05);
+    };
+    const layer = (freq) => {
+      if (!ctx) return;
+      const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+      const g = ctx.createGain(); g.gain.value = 0.0001;
+      g.gain.linearRampToValueAtTime(0.11, ctx.currentTime + 1.4);
+      o.connect(f); f.connect(g); g.connect(master);
+      o.start();
+      layers.push([o, g]);
+    };
+    const melody = () => {
+      if (!ctx) return;
+      const notes = [261.63, 329.63, 392.00, 329.63];
+      let i = 0;
+      const step = () => {
+        tone(notes[i], 'triangle', 1.5, 0.05, 0.4);
+        i = (i + 1) % notes.length;
+      };
+      step();
+      meloInt = setInterval(step, 1800);
+    };
+    const ding = () => { tone(523.25, 'sine', 0.5, 0.10, 0.01); tone(783.99, 'sine', 0.7, 0.06, 0.01, 0.06); };
+    const thunk = () => { tone(110, 'sine', 0.22, 0.14, 0.005); };
+    const kick = () => {
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(85, t);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.16);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.16, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + 0.55);
+    };
+    const pulse = () => { kick(); pulseInt = setInterval(kick, 1000); };
+    const stopAll = () => {
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      layers.forEach(([o, g]) => {
+        g.gain.cancelScheduledValues(t);
+        g.gain.setValueAtTime(g.gain.value, t);
+        g.gain.linearRampToValueAtTime(0.0001, t + 0.6);
+        o.stop(t + 0.8);
+      });
+      layers.length = 0;
+      if (meloInt) { clearInterval(meloInt); meloInt = null; }
+      if (pulseInt) { clearInterval(pulseInt); pulseInt = null; }
+    };
+    return { start, layer, melody, ding, thunk, pulse, stopAll };
+  })();
+
+  /* ---------------- game ---------------- */
+  const say = (text) => { speechLine.textContent = text; };
+  const setLights = () => {
+    lights.forEach((l, i) => l.classList.toggle('on', i < partIndex));
+  };
+  const resetGame = () => {
+    audio.stopAll();
+    partIndex = 0; wrongPicks = 0; busy = false;
+    Object.keys(usedTools).forEach((k) => delete usedTools[k]);
+    document.querySelectorAll('.tool').forEach((t) => t.classList.remove('used'));
+    document.querySelectorAll('.part').forEach((p) => p.classList.remove('fixed', 'broken'));
+    bench.classList.remove('glow'); lamp.classList.remove('lit');
+    setLights();
+    wrongbox.textContent = 'wrong picks: 0';
+    startPart();
+  };
+  const startPart = () => {
+    if (partIndex >= PARTS.length) { finish(); return; }
+    const part = PARTS[partIndex];
+    $(part.id).classList.add('broken');
+    say(part.hint);
+  };
+  const fixPart = (part) => {
+    busy = true;
+    const el = $(part.id);
+    el.classList.remove('broken'); el.classList.add('fixed');
+    const toolBtn = [...tray.children].find((b) => b.dataset.tool === part.tool);
+    if (toolBtn) toolBtn.classList.add('used');
+    usedTools[part.tool] = true;
+    audio.ding();
+    say(part.fixed);
+    if (part.id === 'leg') audio.layer(65.41);
+    else if (part.id === 'drawer') audio.layer(98.00);
+    else if (part.id === 'brace') audio.layer(164.81);
+    else { audio.layer(196.00); audio.melody(); }
+    partIndex += 1;
+    setLights();
+    setTimeout(() => {
+      busy = false;
+      if (partIndex >= PARTS.length) finish(); else startPart();
+    }, 1200);
+  };
+  const finish = () => {
+    bench.classList.add('glow');
+    lamp.classList.add('lit');
+    audio.pulse();
+    setTimeout(() => endCard.classList.add('show'), 900);
+  };
+  const wrongPick = (part) => {
+    wrongPicks += 1;
+    wrongbox.textContent = 'wrong picks: ' + wrongPicks;
+    audio.thunk();
+    const el = $(part.id);
+    el.classList.remove('shaking');
+    void el.offsetWidth;
+    el.classList.add('shaking');
+    say(part.wrong);
+    setTimeout(() => {
+      if (!busy) say(part.hint);
+    }, 2200);
+  };
+
+  /* ---------------- input ---------------- */
+  title.addEventListener('pointerdown', () => {
+    audio.start();
+    title.style.display = 'none';
+    started = true;
+    resetGame();
+  });
+
+  tray.addEventListener('pointerdown', (e) => {
+    if (!started || busy || endCard.classList.contains('show')) return;
+    const btn = e.target.closest('.tool');
+    if (!btn) return;
+    const tool = btn.dataset.tool;
+    if (usedTools[tool]) return;
+    const part = PARTS[partIndex];
+    if (part.tool === tool) fixPart(part); else wrongPick(part);
+  });
+
+  $('again').addEventListener('pointerdown', () => {
+    endCard.classList.remove('show');
+    resetGame();
+  });
+})();
+</script>
+</body>
+</html>
