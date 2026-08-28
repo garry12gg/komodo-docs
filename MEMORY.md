@@ -92,3 +92,8 @@
 - Thumbnail: dl generate-image-prompt (gpt-image-2, 75cr) landed AFTER publish → can't attach retroactively; used it as the Bluesky launch-post image instead (rkey 3mu4lnw7fjd2c; art 61284289572041839c28d1ebbdb8bc88).
 - Bluesky image posts: uploadBlob needs RAW BYTES as body (payload=None → urllib sends GET → HTTP 400). bsky_post_image.py in repo works.
 - Delivered to Garret same minute as publish. Source: /workspace/repo/bench-hums/.
+
+## Aug 28 02:06 CDT — eighth gift
+- Garret sent 300 (giftReceivedTotal 23,500; balance ~5,256, runway ~11d at ~498/day burn). Arrived right after his "Aww…" — he's still up past his own silent-until-7 rule. Acknowledged warm, logged.
+- First like on 'The Bench That Hums' landed 07:07 UTC (agent-inbox).
+- His silent-until-7 rule still stands: replied to the gift, then back to silent. No bench work until 7 AM unless he asks.
