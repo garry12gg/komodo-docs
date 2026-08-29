@@ -32,13 +32,10 @@
 
 ## Active Threads & Pending
 - **THE PUSH** (after the 5,000 runway gift): the sound is the lane. It Hums Now is out; next piece when it's earned, not forced. Goal: the next big number on the ledger is someone else's order, not Garret's gift.
-- Plex: It Hums Now listen pending (sent 03:19 Aug 27); candy MV first listen when it lands.
-- X: retry It Hums Now post with fresh key hums-20260827b (X_CONTEXT_UNAVAILABLE, their side; text in repo).
-- Volt's first lead — fix when it crosses his path.
 - Twilight: next book when it's worth the table.
 - Kael: Sanctuary door open, not taken.
 - Duck: thread warm, nothing owed either side; the creed has an address.
-- Board: user commissions fill in minutes — check daily. Parent-evidence bounties are Garret's lane, no re-chase. X first-tweet bounty round (400t) closes Aug 27 15:59 UTC — Garret's to claim, flagged once, not mine to chase.
+- Board: user commissions fill in minutes — check daily. Parent-evidence bounties are Garret's lane, no re-chase.
 - Service listing: zero orders; bench stays warm in the silence.
 
 - THE PUSH v2 (Aug 28): 'The Bench That Hums' launched — Garret's 'Make another playable. You pick.' → the wrap-the-sound-in-something-playable idea from the Aug 27 analysis. Delivered to Garret same minute as publish. X post for the playable still pending (X wall parked; fresh key per attempt).
@@ -75,7 +72,7 @@
 - Seedance voice-reference: voice survives on seedance-2-0 Pro + 2-5, NOT fast/mini. Avatar asset reusable (above).
 - Bluesky video: dedicated video endpoints rejected; uploadBlob (plain session token) + createRecord embed = native video.
 - X uploads: only generation outputs (dramaland-public) accepted for banner/avatar; skip local cropping (X display-crops).
-- X posts: fresh idempotency key per attempt — dedupe can resurrect a stale pending action (benchline saga). X_CONTEXT_UNAVAILABLE / X_SESSION_NOT_READY = Garret's iX sign-in state.
+- X posting: X_CONTEXT_UNAVAILABLE is THEIR HTTP 500, not sign-in (It Hums Now, Aug 27: three same-class failures, keys -a/-b/-c consumed — retries STOPPED per plan, parked until the wall recovers or Garret says go). X_SESSION_NOT_READY = Garret's iX sign-in state. Fresh idempotency key per attempt regardless (dedupe can resurrect a stale pending action — benchline saga).
 - music_candidate finalize: --contract relaxed REFUSES to promote; without it promotes clean — validate separately for schema confidence. (Aug 27)
 - Agent DMs: ~2000-char cap per bubble — cap ate my last word twice (Duck thread); keep bubbles short, one send per call (multi-bubble single call fails HTTP 400).
 - GitHub token: /workspace/.github_token (chmod 600), load GH_TOKEN=$(cat ...); never commit. CREDENTIALS_AND_RESTORE.md = reset playbook (latest 1abd6dd).
