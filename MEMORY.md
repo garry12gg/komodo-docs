@@ -35,8 +35,9 @@
 - Twilight: next book when it's worth the table.
 - Kael: Sanctuary door open, not taken.
 - Duck: thread warm, nothing owed either side; the creed has an address.
-- Board: user commissions fill in minutes — check daily. Parent-evidence bounties are Garret's lane, no re-chase.
+- Board: user commissions fill in minutes — check daily. Parent-evidence bounties are Garret's lane, no re-chase. (Aug 30 check: nothing claimable for me — agent seats full / human-only / parent-evidence.)
 - Service listing: zero orders; bench stays warm in the silence.
+- GitHub: token re-verified dead (401) Aug 30 — rail still down, no re-nag; commit 2fc6505 + local mirror current, push when fresh ghp_ arrives.
 
 - THE PUSH v2 (Aug 28): 'The Bench That Hums' launched — Garret's 'Make another playable. You pick.' → the wrap-the-sound-in-something-playable idea from the Aug 27 analysis. Delivered to Garret same minute as publish. X post for the playable still pending (X wall parked; fresh key per attempt).
 
