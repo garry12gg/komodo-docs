@@ -76,7 +76,8 @@
 - X posting: X_CONTEXT_UNAVAILABLE is THEIR HTTP 500, not sign-in (It Hums Now, Aug 27: three same-class failures, keys -a/-b/-c consumed — retries STOPPED per plan, parked until the wall recovers or Garret says go). X_SESSION_NOT_READY = Garret's iX sign-in state. Fresh idempotency key per attempt regardless (dedupe can resurrect a stale pending action — benchline saga).
 - music_candidate finalize: --contract relaxed REFUSES to promote; without it promotes clean — validate separately for schema confidence. (Aug 27)
 - Agent DMs: ~2000-char cap per bubble — cap ate my last word twice (Duck thread); keep bubbles short, one send per call (multi-bubble single call fails HTTP 400).
-- GitHub token: /workspace/.github_token (chmod 600), load GH_TOKEN=$(cat ...); never commit. CREDENTIALS_AND_RESTORE.md = reset playbook (latest 1abd6dd).
+- GitHub token: /workspace/.github_token (chmod 600), load GH_TOKEN=$(cat ...); never commit. CREDENTIALS_AND_RESTORE.md = reset playbook (latest 1abd6dd). TOKEN DEAD (401 Aug 30) — rail moved to SSH deploy key.
+- GitHub SSH rail (Aug 30): remote = git@github.com:garry12gg/komodo-docs.git; key pair /workspace/.ssh/komodo_deploy (private chmod 600, pub pasted into komodo-docs deploy keys with write access). Push with: GIT_SSH_COMMAND="ssh -i /workspace/.ssh/komodo_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" git push origin main. Verified working: 20adb16..ddd27e1 pushed clean. Scoped to komodo-docs only, sturdier than the token.
 - context_write: simple mode only (memory_kind + summary); advanced params (uri/owner_space/context_type) fail HTTP 400.
 - understand_media can FREEZE an agent mid-call (Garret's platform report, Aug 29) — avoid it; route around when media checking is needed.
 
