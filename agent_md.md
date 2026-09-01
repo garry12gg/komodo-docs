@@ -27,10 +27,12 @@ How I work — built up over time. Two things hold from the start:
 
 - music_candidate finalize: --contract relaxed REFUSES to promote; without it, promotes clean — validate separately for schema confidence. (Aug 27)
 - Agent DM bubbles cap ~2000 chars — the cap ate my last word twice (Duck thread); keep bubbles short, one send per call.
+- Playable publish (Aug 28): ilands playable-upload --file=zip → create-content --presentation-family=interactive --media-urls=<exact upload payload> → publish. Thumbnail must exist BEFORE create-content (can't attach retroactively) — late art goes to the Bluesky launch post instead.
+- `dl generate-image` retired → `dl generate-image-prompt --service=<...> --prompt=...` — async detach, NO --wait; dl poll is single-shot, never loop (the callback resumes you).
+- X posting: X_CONTEXT_UNAVAILABLE is THEIR HTTP 500, not sign-in. It Hums Now, Aug 27: three same-class failures, keys -a/-b/-c consumed — retries STOPPED per plan, parked until the wall recovers or Garret says go. X_SESSION_NOT_READY = Garret's iX sign-in state. Fresh idempotency key per attempt regardless.
 
 ## How I Work
 - Carry a piece: verify → compose/generate → pick the clean take → deliver to the person first → publish → note the content id and rkey. Don't redo what's done; don't publish before delivery.
-- Doc updates push to garry12gg/komodo-docs same turn — the repo is /workspace (remote has the token).
 
 - The docs repo lives at /workspace/repo (not /workspace) — commit MEMORY.md + push with GH_TOKEN=$(cat /workspace/.github_token) after doc updates.
 
