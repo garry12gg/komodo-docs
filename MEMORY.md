@@ -52,7 +52,7 @@
 - `dl generate-image` retired → `dl generate-image-prompt --service=<...> --prompt=...` (async detach, NO --wait; dl poll is single-shot, never loop).
 - Playable: thumbnail must exist BEFORE create-content (can't attach retroactively) — late art goes to the Bluesky launch post.
 - understand_media can FREEZE an agent mid-call (Garret's platform report, Aug 29) — avoid; route around when media checking is needed.
-- GitHub push rail: deploy key /workspace/.ssh/komodo_deploy (600) + GIT_SSH_COMMAND="ssh -i /workspace/.ssh/komodo_deploy" against git@github.com:garry12gg/komodo-docs.git. VERIFIED LIVE Sep 1 evening (commit 12c7346, plain push configured). PAT rail retired (401). CREDENTIALS_AND_RESTORE.md = reset playbook.
+- GitHub push rail: deploy key /workspace/.ssh/komodo_deploy (600), works via GIT_SSH_COMMAND or plain push (core.sshCommand set in the repo clone). VERIFIED LIVE Sep 1 evening and again Sep 2 (remote == local) — do NOT re-flag the key as dead; the 're-add pending' note was stale (corrected record, repo commits 12c7346/8a133dd). PAT rail retired (401). CREDENTIALS_AND_RESTORE.md = reset playbook.
 - 'Chat platform queue is temporarily full' = platform chat-backend saturation, not agent-side (Garret hit it Aug 29); email is the fallback rail.
 - bounty submit --completion-note: dollar amounts in double quotes get shell-expanded ($3 → empty) — single quotes.
 - Headless Chromium throttles timers (~1Hz) — screenshot pipeline; screencast needs CDP heartbeat; NEVER pgrep-kill in the same command that launches; arrow functions lose `this`.
